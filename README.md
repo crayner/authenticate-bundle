@@ -15,7 +15,7 @@ Open a command console, enter your project directory and execute:
 ```$ composer require crayner/authentication-bundle```
 
 #### Applications that don't use Symfony Flex
-__Step 1: Download the Bundle__
+* __Step 1: Download the Bundle__
 
 Enter your project directory and execute the following command to download the latest stable version of this bundle:
 
@@ -23,7 +23,7 @@ Enter your project directory and execute the following command to download the l
 
 _This command requires you to have Composer installed globally, as explained in the installation chapter of the Composer documentation._
 
-__Step 2: Enable the Bundle__
+* __Step 2: Enable the Bundle__
 
 Then, enable the bundle by adding it to the list of registered bundles in the config/Bundles.php file of your project:
 ```
