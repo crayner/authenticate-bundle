@@ -1,0 +1,55 @@
+{
+    "name": "crayner/authenticate-bundle",
+    "description": "Authenticate Bundle for Symfony 4+",
+    "type": "symfony-bundle",
+    "license": "MIT",
+    "keywords": [
+        "security",
+        "authentication",
+        "Symfony 4+"
+    ],
+    "authors": [
+        {
+            "name": "Craig Rayner",
+            "email": "craig@craigrayner.com"
+        }
+    ],
+    "require": {
+        "php": "^7.2",
+        "symfony/form": "^4.2",
+        "symfony/framework-bundle": "^4.2",
+        "symfony/orm-pack": "^1.0",
+        "symfony/security-bundle": "^4.2",
+        "symfony/swiftmailer-bundle": "^3.2",
+        "symfony/twig-bundle": "^4.2",
+        "symfony/validator": "^4.2"
+    },
+    "require-dev": {
+        "symfony/flex": "^1.2"
+    },
+    "config": {
+        "preferred-install": {
+            "*": "dist"
+        },
+        "sort-packages": true
+    },
+    "autoload": {
+        "psr-4": {
+            "Crayner\\Authentication\\": "src/"
+        },
+        "exclude-from-classmap": [
+            "/tests/"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Crayner\\Authentication\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "auto-scripts": {
+            "cache:clear": "symfony-cmd",
+            "assets:install %PUBLIC_DIR%": "symfony-cmd"
+        }
+    }
+}

@@ -1,0 +1,18 @@
+*.lock
+.idea
+/vendor/
+/var/
+/config/
+/public/
+/.env
+/src/kernel.php
+/bin/
+
+###> symfony/framework-bundle ###
+/.env.local
+/.env.local.php
+/.env.*.local
+/public/bundles/
+/var/
+/vendor/
+###< symfony/framework-bundle ###
