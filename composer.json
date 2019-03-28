@@ -35,7 +35,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Crayner\\Authentication\\": "src/"
+            "Crayner\\Authenticate\\": "src/"
         },
         "exclude-from-classmap": [
             "/tests/"
@@ -43,7 +43,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Crayner\\Authentication\\Tests\\": "tests/"
+            "Crayner\\Authenticate\\Tests\\": "tests/"
         }
     },
     "scripts": {
