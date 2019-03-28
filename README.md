@@ -1,11 +1,12 @@
 # Authenticate Bundle Project
 ### Symfony 4+ Authenticate Bundle Project
 
-___Version 0.0.02___
+___Version 0.0.04___
 
 ## Features
 * [Highest Available Encoder](Documents/HighestAvailabelEncoder.md)
 * [Manage Lock on Login Failures](Documents/ManageFailures.md)
+* [Password Validation](Documents/PasswordValidation.md)
 
 ## Installation
 #### Applications that use Symfony Flex

@@ -13,6 +13,7 @@ namespace Crayner\Authenticate\Controller;
 
 use Crayner\Authenticate\Core\AuthenticateManager;
 use Crayner\Authenticate\Core\SecurityUserProvider;
+use Crayner\Authenticate\Core\UserAuthenticateInterface;
 use Crayner\Authenticate\Entity\User;
 use Crayner\Authenticate\Form\Type\AuthenticateType;
 use Crayner\Authenticate\Form\Type\PasswordByTokenType;
@@ -20,6 +21,7 @@ use Crayner\Authenticate\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
@@ -37,8 +39,9 @@ class SecurityController extends AbstractController
      */
     public function login(AuthenticationUtils $authenticationUtils, SecurityUserProvider $provider, AuthenticateManager $am)
     {
-        if ($this->getUser() instanceof UserInterface && ! $this->isGranted('ROLE_USER'))
+        if (! is_null($this->getUser()) && $provider->supportsClass(get_class($this->getUser())) && $this->isGranted('ROLE_USER')) {
             return $this->redirectToRoute('home');
+        }
 
         // get the login error if there is one
         $error = $authenticationUtils->getLastAuthenticationError();
@@ -46,7 +49,14 @@ class SecurityController extends AbstractController
         // last username entered by the user
         $lastUsername = $authenticationUtils->getLastUsername();
 
-        $user = $provider->loadUserByUsername($lastUsername) ?: $provider->createUser(null, $lastUsername);
+        try {
+            $user = $lastUsername ? $provider->loadUserByUsername($lastUsername) : User::createUser();
+        } catch ( UsernameNotFoundException $e) {
+            $user = User::createUser(null, $lastUsername);
+            $error = $e;
+        }
+
+        $user = $user ?: User::createUser(null, $lastUsername);
 
         $form = $this->createForm(AuthenticateType::class, $user, ['authenticate_manager' => $am]);
 

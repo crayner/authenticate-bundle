@@ -25,11 +25,13 @@ class PasswordValidator extends ConstraintValidator
         if (mb_strlen($value) < $constraint->minLength)
             $this->context->buildViolation(sprintf($constraint->errorMessages['min_length'], $constraint->minLength))
                 ->setTranslationDomain($constraint->transDomain)
+                ->setParameter('{count}', $constraint->minLength)
                 ->addViolation();
 
         if (mb_strlen($value) > $constraint->maxLength)
             $this->context->buildViolation(sprintf($constraint->errorMessages['max_length'], $constraint->maxLength + 1))
                 ->setTranslationDomain($constraint->transDomain)
+                ->setParameter('{count}', $constraint->maxLength)
                 ->addViolation();
 
         if ($constraint->caseDifference && ! preg_match('/^(?=.*?[A-Z])(?=.*?[a-z])/', $value))
@@ -43,7 +45,7 @@ class PasswordValidator extends ConstraintValidator
                 ->addViolation();
 
         if ($constraint->specialCharacters && ! preg_match('/[!#@$%^&*\)\(\\\]\[:><?;]/', $value))
-            $this->context->buildViolation(sprintf($constraint->errorMessages['special_characters'], '!#@$%^&*)(\][><?:;'))
+            $this->context->buildViolation($constraint->errorMessages['special_characters'])
                 ->setTranslationDomain($constraint->transDomain)
                 ->addViolation();
     }

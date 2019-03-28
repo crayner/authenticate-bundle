@@ -14,7 +14,6 @@ namespace Crayner\Authenticate\Core;
 use Crayner\Authenticate\Entity\User;
 use Crayner\Authenticate\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Security\Core\Exception\BadCredentialsException;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -41,7 +40,7 @@ class SecurityUserProvider implements UserProviderInterface
     public function loadUserByUsername($username): UserInterface
     {
         if (null === ($user = $this->userRepository->loadUserByUsername($username))) {
-            throw new BadCredentialsException(sprintf('No user found for "%s"', $username));
+            throw new UsernameNotFoundException(sprintf('No user found for "%s"', $username));
         }
 
         $this->setUser($user);
@@ -83,7 +82,7 @@ class SecurityUserProvider implements UserProviderInterface
      */
     public function supportsClass($class): bool
     {
-        return $class === $this->getUserClass();
+        return $class === $this->getUserClass() || $class === UserAuthenticateInterface::class;
     }
 
     /**
@@ -246,18 +245,6 @@ class SecurityUserProvider implements UserProviderInterface
     {
         $this->getEntityManager()->persist($user);
         $this->getEntityManager()->flush();
-    }
-
-
-    /**
-     * @param string|null $email
-     * @param string|null $username
-     * @return UserAuthenticateInterface
-     */
-    public function createUser(?string $email = null, ?string $username = null): UserAuthenticateInterface
-    {
-        $this->setUser(User::createUser($email,$username));
-        return $this->getUser();
     }
 
     /**
