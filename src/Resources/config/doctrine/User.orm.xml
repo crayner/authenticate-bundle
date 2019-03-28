@@ -1,0 +1,20 @@
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                   https://raw.github.com/doctrine/doctrine2/master/doctrine-mapping.xsd">
+    <entity name="Crayner\Authenticate\Entity\User" table="user" repository-class="Crayner\Authenticate\Repository\UserRepository">
+        <id name="id" type="integer" column="id">
+            <generator strategy="AUTO"/>
+        </id>
+        <field name="username"  type="string" length="75" /><!-- Username defaults programmatically to same as email.-->
+        <field name="email"  type="string" length="75" />
+        <field name="password"  type="string" length="255" />
+        <!-- Modern passwords do not require a salt.  Add getSalt to return '' -->
+        <field name="roles" type="simple_array" />
+        <field name="failureCount" type="smallint" column="failure_count" />
+        <field name="lastFailureTime" type="integer" column="last_failure_time" nullable="true" />
+        <field name="enabled" type="boolean" />
+        <field name="lastAuthenticateTime" type="datetime_immutable" column="last_authenticate_time" nullable="true" />
+        <field name="authenticateResetToken" type="string" column="authenticate_reset_token" nullable="true" />
+    </entity>
+</doctrine-mapping>

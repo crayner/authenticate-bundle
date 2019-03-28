@@ -2,7 +2,7 @@
 /**
  * Created by PhpStorm.
  *
- * authentication-bundle
+ * authenticate-bundle
  * (c) 2019 Craig Rayner <craig@craigrayner.com>
  *
  * User: craig

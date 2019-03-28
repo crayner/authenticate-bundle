@@ -1,0 +1,38 @@
+{% form_theme form
+    'form_div_layout.html.twig'
+%}
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>{% block title %}Welcome!{% endblock %}</title>
+        {% block stylesheets %}{% endblock %}
+    </head>
+    <body>
+        {% block body %}
+            {{ form_start(form) }}
+            {{ form_end(form) }}
+            {% if error is not same as(null) %}
+                {{ error.message }}
+            {% endif %}
+        {% endblock %}
+        {% block javascripts %}
+        {% if password_reset is same as(true) %}
+            <script type="text/javascript" language="JavaScript">
+                function resetPassword() {
+                    var username = document.getElementById('authenticate__username');
+                    var path = '{{ path('send_email_password_reset_token', {'username': '__username__'}) }}';
+                    if (username.value === ""){
+                        alert("You must enter a username to reset the password.");
+                    } else {
+                        path = path.replace('__username__', username.value);
+                        window.open(path, '_self');
+                    }
+                    return false;
+                }
+            </script>
+        {% endif %}
+        {% endblock %}
+    </body>
+</html>

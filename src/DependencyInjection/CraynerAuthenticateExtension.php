@@ -2,7 +2,7 @@
 /**
  * Created by PhpStorm.
  *
- * authentication-bundle
+ * authenticate-bundle
  * (c) 2019 Craig Rayner <craig@craigrayner.com>
  *
  * User: craig
@@ -14,6 +14,7 @@ namespace Crayner\Authenticate\DependencyInjection;
 use Crayner\Authenticate\Core\AuthenticateManager;
 use Crayner\Authenticate\Core\HighestAvailableEncoder;
 use Crayner\Authenticate\Core\LoginFormAuthenticator;
+use Crayner\Authenticate\Core\SecurityUserProvider;
 use Crayner\Authenticate\Validator\Password;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -22,7 +23,7 @@ use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 
 /**
  * Class CraynerAuthenticateExtension
- * @package Crayner\Core\DependencyInjection
+ * @package Crayner\Authenticate\DependencyInjection
  */
 class CraynerAuthenticateExtension extends Extension
 {
@@ -42,7 +43,7 @@ class CraynerAuthenticateExtension extends Extension
             $locator
         );
         $loader->load('services.yaml');
-/*
+
         if (!empty($config['highest_available_encoder']) && $container->has(HighestAvailableEncoder::class))
             $container
                 ->getDefinition(HighestAvailableEncoder::class)
@@ -70,6 +71,9 @@ class CraynerAuthenticateExtension extends Extension
                 ->getDefinition(Password::class)
                 ->addMethodCall('setPasswordValidation', [$config['password_validation']])
             ;
-*/
+
+        if ($container->has(SecurityUserProvider::class))
+            $container->getDefinition(SecurityUserProvider::class)
+                ->addMethodCall('setUserClass', [$config['user_class']]);
     }
 }
