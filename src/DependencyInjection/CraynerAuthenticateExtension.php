@@ -78,16 +78,5 @@ class CraynerAuthenticateExtension extends Extension
                 ->addMethodCall('setUserClass', [$config['user_class']])
                 ->addMethodCall('setRotatePassword', [$config['rotate_password']])
             ;
-
-        if (! $container->hasParameter('security.heirarchy.roles'))
-            $container->setParameter('security.heirarchy.roles',
-                [
-                    'ROLE_USER' => null,
-                    'ROLE_ALLOWED_TO_SWITCH' => null,
-                    'ROLE_SYSTEM_ADMIN' => [
-                        'ROLE_USER' => null,
-                    ],
-                ]
-            );
     }
 }
