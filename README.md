@@ -7,6 +7,7 @@ ___Version 0.0.04___
 * [Highest Available Encoder](Documents/HighestAvailabelEncoder.md)
 * [Manage Lock on Login Failures](Documents/ManageFailures.md)
 * [Password Validation](Documents/PasswordValidation.md)
+* [Rotate Passwords](Documents/RotatePasswords.md)
 
 ## Installation
 #### Applications that use Symfony Flex

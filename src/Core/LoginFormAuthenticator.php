@@ -198,8 +198,11 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator
 
         $this->clearFailures($request);
         if ($this->hasValidRequestUser($request)) {
+            $raw = $request->request->get('authenticate')['_password'];
             $this->entityManager->refresh($this->getRequestUser($request));
             $this->getRequestUser($request)->setLastAuthenticateTime(new \DateTimeImmutable('now'));
+            $this->getRequestUser($request)->setPassword($this->passwordEncoder->upgradePassword($this->getRequestUser($request)->getPassword(), $raw, $this->getRequestUser($request)->getSalt()));
+
             $this->entityManager->persist($this->getRequestUser($request));
             $this->entityManager->flush();
         }
@@ -554,6 +557,29 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator
         $this->requestUser->setLastFailureTime(null);
         $this->entityManager->persist($this->requestUser);
         $this->entityManager->flush();
+        return $this;
+    }
+
+    /**
+     * @var array
+     */
+    private $rotatePassword;
+
+    /**
+     * @return array
+     */
+    public function getRotatePassword(): array
+    {
+        return $this->rotatePassword;
+    }
+
+    /**
+     * @param array $rotatePassword
+     * @return LoginFormAuthenticator
+     */
+    public function setRotatePassword(array $rotatePassword): LoginFormAuthenticator
+    {
+        $this->rotatePassword = $rotatePassword;
         return $this;
     }
 }

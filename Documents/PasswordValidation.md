@@ -22,7 +22,7 @@ crayner_authenticate:
 * __min_length__ The minimum length your system requires for a password.  Valid values are 1 to 150, and < max_length.  Default = 8.
 * __max_length__ The maximum length your system requires for a password.  Valid values are null, 1 to 150, and > min_length.  Default = 150.
 * __case_difference__ Boolean value to require difference case characters in your password. Default = true.
-* __special_characters__ Boolean value to require special characters in your password.  Default = true. Valid characters: ___!#@$%^&*)(\\][:><?;___
+* __special_characters__ Boolean value to require special characters in your password.  Default = true. Valid characters: ___!#@$%^&*)(\\][:><?;+-___
 * __use_number__ Boolean value to require a number in your password. Default = true.
 * __error_messages__ All the error messages that are presented when the password validation fails.
     * __translation_domain__ Translation is not provided by this bundle, but the validator will use the translation domain defined on this setting. Default = 'validators'

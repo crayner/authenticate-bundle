@@ -16,5 +16,6 @@
         <field name="enabled" type="boolean" />
         <field name="lastAuthenticateTime" type="datetime_immutable" column="last_authenticate_time" nullable="true" />
         <field name="authenticateResetToken" type="string" column="authenticate_reset_token" nullable="true" />
+        <field name="previousPasswords" type="json_array" column="previous_passwords" nullable="true" />
     </entity>
 </doctrine-mapping>

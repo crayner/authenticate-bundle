@@ -54,4 +54,23 @@ interface UserAuthenticateInterface extends UserInterface
      * @return bool
      */
     public function isValidAuthenticateResetToken(): bool;
+
+    /**
+     * The password passed to this method must be encoded.
+     *
+     * The array is stored as
+     *   [strtotime('now')] = $password;
+     * so that each password is timestamped.
+     *
+     * @param string $password
+     * @return UserAuthenticateInterface
+     */
+    public function addPreviousPassword(string $password): UserAuthenticateInterface;
+
+    /**
+     * The password passed to this method must be encoded.
+     * @param string $password
+     * @return UserAuthenticateInterface
+     */
+    public function removePreviousPassword(string $password): UserAuthenticateInterface;
 }

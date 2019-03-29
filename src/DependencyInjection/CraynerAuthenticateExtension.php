@@ -57,6 +57,7 @@ class CraynerAuthenticateExtension extends Extension
                 ->addMethodCall('setPasswordEncoder', [$container->getDefinition(HighestAvailableEncoder::class)])
                 ->addMethodCall('setFailureConfig', [$config['manage_failures']])
                 ->addMethodCall('setUserClass', [$config['user_class']])
+                ->addMethodCall('setRotatePassword', [$config['rotate_password']])
             ;
         }
 
@@ -74,6 +75,8 @@ class CraynerAuthenticateExtension extends Extension
 
         if ($container->has(SecurityUserProvider::class))
             $container->getDefinition(SecurityUserProvider::class)
-                ->addMethodCall('setUserClass', [$config['user_class']]);
+                ->addMethodCall('setUserClass', [$config['user_class']])
+                ->addMethodCall('setRotatePassword', [$config['rotate_password']])
+            ;
     }
 }

@@ -13,7 +13,7 @@ namespace Crayner\Authenticate\Form\Type;
 
 use Crayner\Authenticate\Core\UserAuthenticateInterface;
 use Crayner\Authenticate\Validator\Password;
-use Crayner\Authenticate\Validator\PasswordByAuthenticationResetToken;
+use Crayner\Authenticate\Validator\RotatePassword;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
@@ -21,6 +21,7 @@ use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\NotBlank;
 
 /**
  * Class PasswordByTokenType
@@ -29,17 +30,24 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 class PasswordByTokenType extends AbstractType
 {
     /**
+     * @var RotatePassword
+     */
+    private $rotatePassword;
+
+    /**
      * @var Password
      */
-    private $passwordValidator;
+    private $password;
 
     /**
      * PasswordByTokenType constructor.
      * @param Password $password
+     * @param RotatePassword $rotatePassword
      */
-    public function __construct(Password $password)
+    public function __construct(Password $password, RotatePassword $rotatePassword)
     {
-        $this->passwordValidator = $password;
+        $this->password = $password;
+        $this->rotatePassword = $rotatePassword;
     }
 
     /**
@@ -51,7 +59,7 @@ class PasswordByTokenType extends AbstractType
     {
         $builder
             ->add('authenticateResetToken', HiddenType::class)
-            ->add('_password', RepeatedType::class, [
+            ->add('rawPassword', RepeatedType::class, [
                 'type' => PasswordType::class,
                 'invalid_message' => 'The password fields must match.',
                 'options' => ['attr' => ['class' => 'password-field']],
@@ -59,7 +67,7 @@ class PasswordByTokenType extends AbstractType
                 'first_options'  => [
                     'label' => 'Password',
                     'constraints' => [
-                        $this->passwordValidator,
+                        $this->password,
                     ],
                 ],
                 'second_options' => ['label' => 'Repeat Password'],
@@ -92,6 +100,9 @@ class PasswordByTokenType extends AbstractType
                 'attr' => [
                     'novalidate' => true,
                     'id' => $this->getBlockPrefix(),
+                ],
+                'constraints' => [
+                    $this->rotatePassword,
                 ],
             ]
         );

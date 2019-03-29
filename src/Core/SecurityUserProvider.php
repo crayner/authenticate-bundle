@@ -269,4 +269,101 @@ class SecurityUserProvider implements UserProviderInterface
         $this->userClass = $userClass;
         return $this;
     }
+
+    /**
+     * @var array
+     */
+    private $rotatePassword;
+
+    /**
+     * @return array
+     */
+    public function getRotatePassword(): array
+    {
+        return $this->rotatePassword;
+    }
+
+    /**
+     * @param array $rotatePassword
+     * @return SecurityUserProvider
+     */
+    public function setRotatePassword(array $rotatePassword): SecurityUserProvider
+    {
+        $this->rotatePassword = $rotatePassword;
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isRotatingPassword(): bool
+    {
+        return $this->getRotatePassword()['keep_last_number'] > 0 && $this->getRotatePassword()['keep_for_days'] > 0;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isValidPasswordChange(): bool
+    {
+        if (! $this->isRotatingPassword())
+            return true;
+        $password = $this->getUser()->getRawPassword();
+        if ($this->getEncoder()->isPasswordValid($this->getUser()->getPassword(), $password, $this->getUser()->getSalt()))
+            return false;
+        $password = $this->getEncoder()->encodePassword($password, $this->getUser()->getSalt());
+
+        $passwords = $this->cullPreviousPasswords();
+
+        return ! in_array($password, $passwords);
+    }
+
+    /**
+     * @var array|null
+     */
+    private $previousPasswords;
+
+    /**
+     * @return array
+     */
+    private function cullPreviousPasswords(): array
+    {
+        if (! empty($this->previousPasswords))
+            return $this->previousPasswords;
+
+        $passwords = $this->getUser()->getPreviousPasswords();
+        krsort($passwords, SORT_NUMERIC);
+        foreach($passwords as $time=>$password)
+        {
+            if ($time < strtotime('-'.$this->getRotatePassword()['keep_for_days'].' Days'))
+                unset($passwords[$time]);
+            else
+                break;
+        }
+
+        if (count($passwords) > $this->getRotatePassword()['keep_last_number'])
+        {
+            while (count($passwords) > $this->getRotatePassword()['keep_last_number'])
+                array_pop($passwords);
+
+        }
+        $this->getUser()->setPreviousPasswords($passwords);
+
+        return $this->previousPasswords = $this->getUser()->getPreviousPasswords();
+    }
+
+    public function changePassword(): void
+    {
+        if ($this->isRotatingPassword() && $this->isValidPasswordChange())
+        {
+            $passwords = $this->cullPreviousPasswords();
+            if (count($passwords) + 1 > $this->getRotatePassword()['keep_last_number'])
+                array_pop($passwords);
+            $passwords[strtotime('now')] = $this->getUser()->getPassword();
+            $this->getUser()->setPassword($this->getEncoder()->encodePassword($this->getUser()->getRawPassword(), $this->getUser()->getSalt()));
+            $this->getUser()->setFailureCount(0);
+            $this->getUser()->setPreviousPasswords($passwords);
+            $this->saveUser($this->getUser());
+        }
+    }
 }

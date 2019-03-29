@@ -22,7 +22,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 class User implements UserAuthenticateInterface, EquatableInterface
 {
     use UserEntityTrait;
-    use UserAuthenticationTrait;
+    use UserAuthenticateTrait;
 
     /**
      * User constructor.

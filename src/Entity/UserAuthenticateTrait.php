@@ -14,10 +14,10 @@ namespace Crayner\Authenticate\Entity;
 use Crayner\Authenticate\Core\UserAuthenticateInterface;
 
 /**
- * Trait UserAuthenticationTrait
+ * Trait UserAuthenticateTrait
  * @package Crayner\Authenticate\Entity
  */
-trait UserAuthenticationTrait
+trait UserAuthenticateTrait
 {
     /**
      * @var integer
@@ -168,5 +168,77 @@ trait UserAuthenticationTrait
     public function isValidAuthenticateResetToken(): bool
     {
         return ($this->getAuthenticateResetTime() ? $this->getAuthenticateResetTime() >= strtotime('-24 Hours') : false);
+    }
+
+    /**
+     * @var array
+     */
+    private $previousPasswords;
+
+    /**
+     * @return array
+     */
+    public function getPreviousPasswords(): array
+    {
+        return $this->previousPasswords ?: [];
+    }
+
+    /**
+     * @param array $previousPasswords
+     * @return UserAuthenticateTrait
+     */
+    public function setPreviousPasswords(array $previousPasswords): UserAuthenticateInterface
+    {
+        $this->previousPasswords = $previousPasswords;
+        return $this;
+    }
+
+    /**
+     * @param string $password
+     * @return UserAuthenticateInterface
+     */
+    public function addPreviousPassword(string $password): UserAuthenticateInterface
+    {
+        if (in_array($password, $this->getPreviousPasswords()))
+            return $this;
+
+        $this->previousPasswords[strtotime('now')] = $password;
+        return $this;
+    }
+
+    /**
+     * @param string $password
+     * @return UserAuthenticateInterface
+     */
+    public function removePreviousPassword(string $password): UserAuthenticateInterface
+    {
+        if (in_array($password, $this->getPreviousPasswords())) {
+            $key = array_search($password, $this->previousPasswords);
+            unset($this->previousPasswords[$key]);
+        }
+        return $this;
+    }
+
+    /**
+     * @var null|string
+     */
+    private $rawPassword;
+
+    /**
+     * @return string|null
+     */
+    public function getRawPassword(): ?string
+    {
+        return $this->rawPassword;
+    }
+
+    /**
+     * @param string|null $rawPassword
+     * @return UserAuthenticateTrait
+     */
+    public function setRawPassword(?string $rawPassword): UserAuthenticateInterface
+    {
+        $this->rawPassword = $rawPassword;
+        return $this;
     }
 }

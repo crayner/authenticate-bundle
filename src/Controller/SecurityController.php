@@ -155,8 +155,7 @@ class SecurityController extends AbstractController
             if ($form->isSubmitted() && $form->isValid())
             {
                 $manager->getUser()->setAuthenticateResetToken(null);
-                $manager->setPassword($manager->getEncoder()->encodePassword($manager->getUser()->getPassword(),$manager->getUser()->getSalt()));
-                $manager->saveUser($manager->getUser());
+                $manager->changePassword();
                 return $this->redirectToRoute('home');
             }
 
@@ -166,6 +165,6 @@ class SecurityController extends AbstractController
                 ]
             );
         }
-        return $this->render();
+        return $this->render('@CraynerAuthenticate/Security/no_valid_authenticate_token.html.twig');
     }
 }
