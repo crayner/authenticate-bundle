@@ -2,7 +2,7 @@
 ### Bundle Settings
 
 #### Internal Settings
-```
+```yaml
 crayner_authenticate:
     user_class: Crayner\Authenticate\Entity\User
     mailer_available: false

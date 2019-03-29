@@ -2,7 +2,7 @@
 ### Password Validation
 
 #### Settings
-```
+```yaml
 crayner_authenticate:
     ...
     password_validation:

@@ -7,7 +7,7 @@ The Highest Available Encoder is defined with the following defaults when flex c
 * SHA256
 * MD5
 
-```
+```yaml
 crayner_authenticate:
     highest_available_encoder:
         # Argon2i Options

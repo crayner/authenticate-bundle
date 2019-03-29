@@ -2,7 +2,7 @@
 ### Rotate Passwords
 
 #### Settings
-```
+```yaml
 crayner_authenticate:
     ...
     rotate_password:

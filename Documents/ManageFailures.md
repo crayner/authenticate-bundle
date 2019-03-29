@@ -4,7 +4,7 @@
 The bundle provides the ability to limit the number of failed login attempts.  This works at the user level, when the username is correctly entered, but the password is incorrect.  If the username is incorrect, the device is recorded to help stop guesswork by hackers.  When the failed login count is exceeded, then the user or device is locked for further login attempts for the time set in the manage failure settings.
 
 #### Setting
-```
+```yaml
 crayner_authenticate:
     ...
     manage_failures:
