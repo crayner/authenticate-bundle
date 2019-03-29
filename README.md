@@ -1,7 +1,7 @@
 # Authenticate Bundle Project
 ### Symfony 4+ Authenticate Bundle Project
 
-___Version 1.0.04___
+___Version 1.0.05___
 
 ## Features
 * [Highest Available Encoder](Documents/HighestAvailabelEncoder.md)
@@ -37,6 +37,6 @@ return [
 ```
 * __[Bundle Settings](Documents/BundleSettings.md)__
 * __[Application Integration](Documents/AppIntegration.md)__
-* __<a href="https://symfony.com/doc/master/bundles/override.html" target="_blank">Override the Bundle</a>__
+* __[Override Bundle](Documents/OverrideBundle.md)__
 
 [MIT License](LICENSE.md)
