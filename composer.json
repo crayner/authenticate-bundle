@@ -15,14 +15,14 @@
         }
     ],
     "require": {
-        "php": "^7.2",
-        "symfony/form": "^4.2",
-        "symfony/framework-bundle": "^4.2",
+        "php": "^7.1|^7.2",
+        "symfony/form": "^3.4|^4.2",
+        "symfony/framework-bundle": "^3.4|^4.2",
         "symfony/orm-pack": "^1.0",
-        "symfony/security-bundle": "^4.2",
+        "symfony/security-bundle": "^3.4|^4.2",
         "symfony/swiftmailer-bundle": "^3.2",
-        "symfony/twig-bundle": "^4.2",
-        "symfony/validator": "^4.2"
+        "symfony/twig-bundle": "^3.4|^4.2",
+        "symfony/validator": "^3.4|^4.2"
     },
     "require-dev": {
         "symfony/flex": "^1.2"
