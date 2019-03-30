@@ -73,4 +73,9 @@ interface UserAuthenticateInterface extends UserInterface
      * @return UserAuthenticateInterface
      */
     public function removePreviousPassword(string $password): UserAuthenticateInterface;
+
+    /**
+     * @return bool
+     */
+    public function isForcePasswordChange(): bool;
 }

@@ -241,4 +241,27 @@ trait UserAuthenticateTrait
         $this->rawPassword = $rawPassword;
         return $this;
     }
+
+    /**
+     * @var boolean
+     */
+    private $forcePasswordChange;
+
+    /**
+     * @return bool
+     */
+    public function isForcePasswordChange(): bool
+    {
+        return $this->forcePasswordChange ? true : false ;
+    }
+
+    /**
+     * @param bool $forcePasswordChange
+     * @return UserAuthenticateTrait
+     */
+    public function setForcePasswordChange(bool $forcePasswordChange): UserAuthenticateInterface
+    {
+        $this->forcePasswordChange = $forcePasswordChange ? true : false ;
+        return $this;
+    }
 }
