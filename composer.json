@@ -51,7 +51,7 @@
     "scripts": {
         "auto-scripts": {
             "crayner:authenticate:install": "symfony-cmd",
-            "cache:clear": "symfony-cmd",
+            "cache:clear": "symfony-cmd"
         }
     }
 }
