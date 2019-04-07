@@ -18,6 +18,7 @@
         "php": "^7.2",
         "symfony/console": "4.2.*",
         "symfony/dotenv": "4.2.*",
+        "symfony/flex": "^1.2",
         "symfony/framework-bundle": "4.2.*",
         "symfony/orm-pack": "^1.0",
         "symfony/security-bundle": "^4.2",
@@ -27,7 +28,6 @@
         "symfony/yaml": "4.2.*"
     },
     "require-dev": {
-        "symfony/flex": "^1.2"
     },
     "config": {
         "preferred-install": {

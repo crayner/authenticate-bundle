@@ -78,7 +78,6 @@ class Configuration implements ConfigurationInterface
                         ->integerNode('keep_for_days')->min(0)->max(1500)->defaultValue(0)->end()  // up to four years
                         ->integerNode('change_every')->min(0)->max(365)->defaultValue(0)->end()
                         ->scalarNode('rotate_error_message')->defaultValue('The password has been used before.')->end()
-                        ->scalarNode('translation_domain')->defaultValue('validators')->end()
                     ->end()
                 ->end()
                 ->scalarNode('user_class')->defaultValue('Crayner\Authenticate\Entity\User')->end()

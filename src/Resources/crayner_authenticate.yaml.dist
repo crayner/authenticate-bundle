@@ -37,11 +37,12 @@ crayner_authenticate:
             case_difference: 'Your password must contain upper and lower case characters.'
             special_characters: 'Your password must contain a special character. !#@$%^&*)(\][><?:;+-'
             use_number: 'Your password must contain a number.'
-            translation_domain: validators
     #Rotate Passwords
     rotate_password:
         keep_last_number: 0
         keep_for_days: 0
         change_every: 60
-        message: 'The password has been used before.'
-        translation_domain: validators
+    translation_domain: validators
+    messages:
+        current_password_wrong: Your current password is not valid.
+        no_authenticated_user: Username/Email could not be found.
