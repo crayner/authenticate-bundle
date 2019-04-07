@@ -81,7 +81,7 @@ class Configuration implements ConfigurationInterface
                         ->scalarNode('translation_domain')->defaultValue('validators')->end()
                     ->end()
                 ->end()
-                ->scalarNode('user_class')->isRequired()->end()
+                ->scalarNode('user_class')->defaultValue('Crayner\Authenticate\Entity\User')->end()
                 ->booleanNode('mailer_available')->defaultFalse()->end()
                 ->scalarNode('translation_domain')->defaultValue('validators')->end()
                 ->arrayNode('messages')->addDefaultsIfNotSet()

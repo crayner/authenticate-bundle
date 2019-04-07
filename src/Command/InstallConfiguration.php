@@ -38,7 +38,11 @@ class InstallConfiguration extends Command
         $kernel = $this->getApplication()->getKernel();
         $projectDir = $kernel->getProjectDir();
 
-        if (! file_exists($projectDir .'/config/packages/crayner_authenticate.yaml'))
-            copy($projectDir.'/vendor/crayner/authenticate-bundle/Resources/crayner_authenticate.yaml.dist', $projectDir .'/config/packages/crayner_authenticate.yaml');
+
+        if (! realpath($projectDir .'/config/packages/crayner_authenticate.yaml')) {
+            copy($projectDir.'/vendor/crayner/authenticate-bundle/src/Resources/crayner_authenticate.yaml.dist', $projectDir .'/config/packages/crayner_authenticate.yaml');
+        }
+
+        return 0;
     }
 }
