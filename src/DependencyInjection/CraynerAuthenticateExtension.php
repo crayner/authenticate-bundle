@@ -14,6 +14,7 @@ namespace Crayner\Authenticate\DependencyInjection;
 use Crayner\Authenticate\Core\AuthenticateManager;
 use Crayner\Authenticate\Core\HighestAvailableEncoder;
 use Crayner\Authenticate\Core\LoginFormAuthenticator;
+use Crayner\Authenticate\Core\Messages;
 use Crayner\Authenticate\Core\SecurityUserProvider;
 use Crayner\Authenticate\Validator\Password;
 use Symfony\Component\Config\FileLocator;
@@ -68,15 +69,25 @@ class CraynerAuthenticateExtension extends Extension
             ;
 
         if ($container->has(Password::class))
+            $config['password_validation']['translation_domain'] = $config['translation_domain'];
             $container
                 ->getDefinition(Password::class)
                 ->addMethodCall('setPasswordValidation', [$config['password_validation']])
             ;
 
         if ($container->has(SecurityUserProvider::class))
+            $config['rotate_password']['translation_domain'] = $config['translation_domain'];
             $container->getDefinition(SecurityUserProvider::class)
                 ->addMethodCall('setUserClass', [$config['user_class']])
                 ->addMethodCall('setRotatePassword', [$config['rotate_password']])
+            ;
+
+        if ($container->has(Messages::class))
+            $container->getDefinition(Messages::class)
+                ->addMethodCall('setTranslationDomain', [$config['translation_domain']])
+                ->addMethodCall('setMessages', [$config['messages']])
+                ->addMethodCall('setMessages', [$config['password_validation']['error_messages']])
+                ->addMethodCall('setMessages', [['rotate_error_message' => $config['rotate_password']['rotate_error_message']]])
             ;
     }
 }

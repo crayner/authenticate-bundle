@@ -50,8 +50,8 @@
     },
     "scripts": {
         "auto-scripts": {
+            "crayner:authenticate:install": "symfony-cmd",
             "cache:clear": "symfony-cmd",
-            "assets:install %PUBLIC_DIR%": "symfony-cmd"
         }
     }
 }

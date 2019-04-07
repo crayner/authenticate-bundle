@@ -6,27 +6,30 @@
  * (c) 2019 Craig Rayner <craig@craigrayner.com>
  *
  * User: craig
- * Date: 29/03/2019
- * Time: 10:07
+ * Date: 30/03/2019
+ * Time: 15:47
  */
 
 namespace Crayner\Authenticate\Validator;
-
 
 use Crayner\Authenticate\Core\SecurityUserProvider;
 use Crayner\Authenticate\Core\UserAuthenticateInterface;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 
-class RotatePasswordValidator extends ConstraintValidator
+class CurrentPasswordValidValidator extends ConstraintValidator
 {
     public function validate($value, Constraint $constraint)
     {
-        if ($value instanceof UserAuthenticateInterface && $this->provider->isRotatingPassword())
+        if ($value instanceof UserAuthenticateInterface)
         {
-            if (! $this->provider->isValidPasswordChange())
-                $this->context->buildViolation($this->provider->getMessages()->getMessage('rotate_error_message'))
+            $password = $value->getPassword();
+            $user = $this->provider->find($value->getId());
+            $this->provider->getEntityManager()->refresh($user);
+            if (! $this->provider->getEncoder()->isPasswordValid($value->getPassword(), $password, $value->getSalt()))
+                $this->context->buildViolation($this->provider->getMessages()->getMessage('current_password_wrong'))
                     ->setTranslationDomain($this->provider->getMessages()->getTranslationDomain())
+                    ->atPath('_password')
                     ->addViolation();
         }
     }

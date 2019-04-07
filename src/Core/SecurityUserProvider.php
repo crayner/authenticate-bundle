@@ -138,14 +138,20 @@ class SecurityUserProvider implements UserProviderInterface
     private $encoder;
 
     /**
+     * @var Messages
+     */
+    private $messages;
+
+    /**
      * SecurityUserProvider constructor.
      * @param UserRepository $repository
      */
-    public function __construct(EntityManagerInterface $em, HighestAvailableEncoder $encoder)
+    public function __construct(EntityManagerInterface $em, HighestAvailableEncoder $encoder, Messages $messages)
     {
         $this->userRepository = $em->getRepository(User::class);
         $this->entityManager = $em;
         $this->encoder = $encoder;
+        $this->messages = $messages;
     }
 
     /**
@@ -354,16 +360,36 @@ class SecurityUserProvider implements UserProviderInterface
 
     public function changePassword(): void
     {
-        if ($this->isRotatingPassword() && $this->isValidPasswordChange())
-        {
+        $passwords = null;
+        if ($this->isRotatingPassword() && $this->isValidPasswordChange()) {
             $passwords = $this->cullPreviousPasswords();
             if (count($passwords) + 1 > $this->getRotatePassword()['keep_last_number'])
                 array_pop($passwords);
             $passwords[strtotime('now')] = $this->getUser()->getPassword();
-            $this->getUser()->setPassword($this->getEncoder()->encodePassword($this->getUser()->getRawPassword(), $this->getUser()->getSalt()));
-            $this->getUser()->setFailureCount(0);
-            $this->getUser()->setPreviousPasswords($passwords);
-            $this->saveUser($this->getUser());
         }
+        $this->getUser()->setPassword($this->getEncoder()->encodePassword($this->getUser()->getRawPassword(), $this->getUser()->getSalt()));
+        $this->getUser()->setFailureCount(0);
+        $this->getUser()->setPreviousPasswords($passwords);
+        $this->getUser()->setForcePasswordChange(false);
+        $this->saveUser($this->getUser());
+
+    }
+
+    /**
+     * @param int $id
+     * @return UserAuthenticateInterface|null
+     */
+    public function find(int $id): ?UserAuthenticateInterface
+    {
+        $this->setUser($this->getUserRepository()->find($id));
+        return $this->getUser();
+    }
+
+    /**
+     * @return Messages
+     */
+    public function getMessages(): Messages
+    {
+        return $this->messages;
     }
 }

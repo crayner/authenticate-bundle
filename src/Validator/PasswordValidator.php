@@ -44,7 +44,7 @@ class PasswordValidator extends ConstraintValidator
                 ->setTranslationDomain($constraint->transDomain)
                 ->addViolation();
 
-        if ($constraint->specialCharacters && ! preg_match('/[!#@$%^&*\)\(\\\]\[:><?;+-]/', $value))
+        if ($constraint->specialCharacters && ! preg_match('#[[:punct:]]#', $value))
             $this->context->buildViolation($constraint->errorMessages['special_characters'])
                 ->setTranslationDomain($constraint->transDomain)
                 ->addViolation();

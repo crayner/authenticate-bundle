@@ -13,14 +13,15 @@ namespace Crayner\Authenticate\Controller;
 
 use Crayner\Authenticate\Core\AuthenticateManager;
 use Crayner\Authenticate\Core\SecurityUserProvider;
-use Crayner\Authenticate\Core\UserAuthenticateInterface;
 use Crayner\Authenticate\Entity\User;
 use Crayner\Authenticate\Form\Type\AuthenticateType;
+use Crayner\Authenticate\Form\Type\ForcePasswordChangeType;
 use Crayner\Authenticate\Form\Type\PasswordByTokenType;
 use Crayner\Authenticate\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
@@ -166,5 +167,32 @@ class SecurityController extends AbstractController
             );
         }
         return $this->render('@CraynerAuthenticate/Security/no_valid_authenticate_token.html.twig');
+    }
+
+    /**
+     * @param string $token
+     * @param SecurityUserProvider $manager
+     * @Route("/security/password/force/{user}/change/", name="force_password_change")
+     */
+    public function forcePasswordChange($user, SecurityUserProvider $provider, Request $request)
+    {
+        $user = $provider->find($user);
+
+        $form = $this->createForm(ForcePasswordChangeType::class, $user);
+
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid())
+        {
+            $provider->changePassword();
+            return $this->redirectToRoute('home');
+
+        }
+
+        return $this->render('@CraynerAuthenticate/Security/force_change_user_password.html.twig',
+            [
+                'form' => $form->createView(),
+            ]
+        );
     }
 }

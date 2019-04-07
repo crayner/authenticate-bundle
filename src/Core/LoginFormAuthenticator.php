@@ -63,6 +63,11 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator
     private $tokenStorage;
 
     /**
+     * @var Messages
+     */
+    private $messages;
+
+    /**
      * LoginFormAuthenticator constructor.
      * @param EntityManagerInterface $entityManager
      * @param RouterInterface $router
@@ -74,12 +79,14 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator
         EntityManagerInterface $entityManager,
         RouterInterface $router,
         CsrfTokenManagerInterface $csrfTokenManager,
-        TokenStorageInterface $tokenStorage
+        TokenStorageInterface $tokenStorage,
+        Messages $messages
     ) {
         $this->entityManager = $entityManager;
         $this->router = $router;
         $this->csrfTokenManager = $csrfTokenManager;
         $this->tokenStorage = $tokenStorage;
+        $this->messages = $messages;
     }
 
     /**
@@ -146,7 +153,7 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator
 
         if (!$user) {
             // fail authentication with a custom error
-            throw new CustomUserMessageAuthenticationException('Username/Email could not be found.');
+            throw new CustomUserMessageAuthenticationException($this->getMessages()->getMessage('no_authenticated_user'));
         }
 
         return $user;
@@ -206,7 +213,10 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator
             $this->entityManager->persist($this->getRequestUser($request));
             $this->entityManager->flush();
         }
+
         $targetPath = $this->getTargetPath($request, $providerKey);
+        if ($this->getRequestUser($request)->isForcePasswordChange())
+            $targetPath = $this->router->generate('force_password_change', ['user' => $this->getRequestUser($request)->getId()]);
 
         return new RedirectResponse($targetPath ?: '/');
     }
@@ -581,5 +591,13 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator
     {
         $this->rotatePassword = $rotatePassword;
         return $this;
+    }
+
+    /**
+     * @return Messages
+     */
+    public function getMessages(): Messages
+    {
+        return $this->messages;
     }
 }
