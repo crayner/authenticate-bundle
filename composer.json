@@ -20,6 +20,7 @@
         "symfony/dotenv": "4.2.*",
         "symfony/flex": "^1.2",
         "symfony/framework-bundle": "4.2.*",
+        "symfony/monolog-bundle": "^3.3",
         "symfony/orm-pack": "^1.0",
         "symfony/security-bundle": "^4.2",
         "symfony/swiftmailer-bundle": "^3.2",
@@ -51,7 +52,8 @@
     "scripts": {
         "auto-scripts": {
             "crayner:authenticate:install": "symfony-cmd",
-            "cache:clear": "symfony-cmd"
+            "cache:clear": "symfony-cmd",
+            "assets:install %PUBLIC_DIR%": "symfony-cmd"
         }
     }
 }
