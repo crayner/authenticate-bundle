@@ -24,8 +24,7 @@ crayner_authenticate:
 * __case_difference__ Boolean value to require difference case characters in your password. Default = true.
 * __special_characters__ Boolean value to require special characters in your password.  Default = true. Valid characters: ___!#@$%^&*)(\\][:><?;+-___
 * __use_number__ Boolean value to require a number in your password. Default = true.
-* __error_messages__ All the error messages that are presented when the password validation fails.
-    * __translation_domain__ Translation is not provided by this bundle, but the validator will use the translation domain defined on this setting. Default = 'validators'
+* __error_messages__ All the error messages that are presented when the password validation fails.  Defaults for the messages are given above.
     * The ___min_length___ and ___max_length___ messages attempt to inject the appropriate figure in the error message.  The __{count}__ is the target for this information, and your error message should implement __{count}__ if you wish to take advantage of this feature. 
 
 [Return Home](../README.md)

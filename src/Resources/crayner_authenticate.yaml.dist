@@ -1,7 +1,7 @@
 ## All of the default values
 crayner_authenticate:
     user_class: Crayner\Authenticate\Entity\User
-    mailer_available: true
+    mailer_available: false
     highest_available_encoder:
         # Argon2i Options
         memory_cost: 16384
@@ -41,7 +41,7 @@ crayner_authenticate:
     rotate_password:
         keep_last_number: 0
         keep_for_days: 0
-        change_every: 60
+        change_every: 60 # Days
     translation_domain: validators
     messages:
         current_password_wrong: Your current password is not valid.
