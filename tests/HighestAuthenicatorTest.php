@@ -14,6 +14,8 @@ namespace Crayner\Authenticate\Tests;
 
 
 use Crayner\Authenticate\Core\HighestAvailableEncoder;
+use Crayner\Authenticate\Core\MD5PasswordEncoder;
+use Crayner\Authenticate\Core\SHA256PasswordEncoder;
 use PHPUnit\Framework\TestCase;
 
 class HighestAuthenicatorTest extends TestCase
@@ -23,21 +25,6 @@ class HighestAuthenicatorTest extends TestCase
      */
     CONST PASSWORD = 'tiGGer44';
 
-    /*                ->arrayNode('highest_available_encoder')->addDefaultsIfNotSet()
-                    ->children()
-                        ->integerNode('memory_cost')->defaultValue(16384)->end()
-                        ->integerNode('time_cost')->defaultValue(2)->end()
-                        ->integerNode('threads')->defaultValue(4)->end()
-                        ->integerNode('cost')->defaultValue(\PASSWORD_BCRYPT_DEFAULT_COST)->min(4)->max(31)->end()
-                        ->integerNode('iterations_sha256')->defaultValue(1000)->min(1)->max(32000)->end()
-                        ->integerNode('iterations_md5')->defaultValue(1)->min(1)->max(32000)->end()
-                        ->booleanNode('encode_as_base64')->defaultFalse()->end()
-                        ->scalarNode('password_salt_mask')->defaultValue('{password}{{salt}}')->end()
-                        ->enumNode('maximum_available')->values($encoders)->defaultValue('argon2i')->end()
-                        ->enumNode('minimum_available')->values($encoders)->defaultValue('md5')->end()
-                        ->booleanNode('always_upgrade')->defaultTrue()->end()
-                    ->end()
-*/
     /**
      * testMD5Encoder
      */
@@ -53,6 +40,10 @@ class HighestAuthenicatorTest extends TestCase
         $encoder->setConfiguration($config);
         $this->assertEquals(md5(HighestAuthenicatorTest::PASSWORD), $encoder->encodePassword(HighestAuthenicatorTest::PASSWORD, null));
         $this->assertTrue($encoder->isPasswordValid(md5(HighestAuthenicatorTest::PASSWORD), HighestAuthenicatorTest::PASSWORD, null));
+
+        $md5 = new MD5PasswordEncoder(1);
+        $encoded = $md5->encodePassword(HighestAuthenicatorTest::PASSWORD, null);
+        $this->assertTrue($md5->isPasswordValid($encoded, HighestAuthenicatorTest::PASSWORD, null));
     }
 
     /**
@@ -79,6 +70,10 @@ class HighestAuthenicatorTest extends TestCase
         $encoder->setConfiguration($config);
         $this->assertEquals(base64_encode($encoded), $encoder->encodePassword(HighestAuthenicatorTest::PASSWORD, $salt));
         $this->assertTrue($encoder->isPasswordValid(base64_encode($encoded), HighestAuthenicatorTest::PASSWORD, $salt));
+
+        $sha256 = new SHA256PasswordEncoder(false, 1, null);
+        $encoded = $sha256->encodePassword(HighestAuthenicatorTest::PASSWORD, null);
+        $this->assertTrue($sha256->isPasswordValid($encoded, HighestAuthenicatorTest::PASSWORD, null));
     }
 
     /**
@@ -156,5 +151,29 @@ class HighestAuthenicatorTest extends TestCase
         $config['always_upgrade'] = true;
         $encoder->setConfiguration($config);
         $this->assertStringStartsWith('$argon2i$v=19$m=16384,t=2,p=4$', $encoder->upgradePassword($encoded, HighestAuthenicatorTest::PASSWORD, null, true));
+    }
+
+    public function testMinimumEncoder()
+    {
+        $config = [
+            'maximum_available' => 'bcrypt',
+            'minimum_available' => 'bcrypt',
+            'password_salt_mask' => '{password}{{salt}}',
+            'iterations_sha256' => 1,
+            'iterations_md5' => 1,
+            'encode_as_base64' => false,
+            'cost' => 15,
+            'memory_cost' => 16384,
+            'time_cost' => 2,
+            'threads' => 4,
+            'always_upgrade' => false,
+        ];
+
+        $encoder = new HighestAvailableEncoder();
+        $encoder->setConfiguration($config);
+        $encoded = md5(HighestAuthenicatorTest::PASSWORD);
+
+        $this->assertFalse($encoder->isPasswordValid($encoded, HighestAuthenicatorTest::PASSWORD, null));
+        $this->assertStringStartsWith('$2y$15$', $encoder->encodePassword(HighestAuthenicatorTest::PASSWORD, null));
     }
 }
