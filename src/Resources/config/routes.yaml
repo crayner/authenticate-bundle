@@ -1,0 +1,24 @@
+login:
+    path: /login
+    controller: Crayner\Authenticate\Controller\SecurityController::login
+home:
+    path: /home
+    controller: Crayner\Authenticate\Controller\SecurityController::home
+home2:
+    path: /
+    controller: Crayner\Authenticate\Controller\SecurityController::home
+test:
+    path: /test
+    controller: Crayner\Authenticate\Controller\SecurityController::test
+logout:
+    path: /logout
+    controller: Crayner\Authenticate\Controller\SecurityController::logout
+send_email_password_reset_token:
+    path: /send/email/{username}/reset/token/
+    controller: Crayner\Authenticate\Controller\SecurityController::sendEmailPasswordResetCode
+reset_password_by_token:
+    path: /password/reset/{token}/by/token/
+    controller: Crayner\Authenticate\Controller\SecurityController::resetPasswordByToken
+force_password_change:
+    path: /password/force/{user}/change/
+    controller: Crayner\Authenticate\Controller\SecurityController::forcePasswordChange

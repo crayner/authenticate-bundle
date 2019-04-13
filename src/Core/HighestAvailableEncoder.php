@@ -49,7 +49,6 @@ class HighestAvailableEncoder extends BasePasswordEncoder
             throw new \InvalidArgumentException(sprintf('The %s requires that the "password_salt_mask" contains both "{password}" and "{salt}".  The current "password_salt_mask" is "%s" and can be changed in the config/packages/crayner_authentication.yaml file.', HighestAvailableEncoder::class, $options['password_salt_mask']));
         $this->config = $options;
 
-
         $this->available = null;
         if (\defined('PASSWORD_ARGON2I')) {
             $this->available = 'argon2i';

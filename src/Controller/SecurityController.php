@@ -20,7 +20,6 @@ use Crayner\Authenticate\Form\Type\PasswordByTokenType;
 use Crayner\Authenticate\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
@@ -34,7 +33,6 @@ class SecurityController extends AbstractController
      * @param AuthenticationUtils $authenticationUtils
      * @param UserRepository $repository
      * @return \Symfony\Component\HttpFoundation\RedirectResponse|\Symfony\Component\HttpFoundation\Response
-     * @Route("/login", name="login")
      */
     public function login(AuthenticationUtils $authenticationUtils, SecurityUserProvider $provider, AuthenticateManager $am)
     {
@@ -70,8 +68,6 @@ class SecurityController extends AbstractController
 
     /**
      * home
-     * @Route("/", name="home")
-     * @Route("/home")
      */
     public function home()
     {
@@ -79,8 +75,7 @@ class SecurityController extends AbstractController
     }
 
     /**
-     * home
-     * @Route("/test", name="test")
+     * test
      *
      */
     public function test()
@@ -91,7 +86,6 @@ class SecurityController extends AbstractController
 
     /**
      * logout
-     * @Route("/logout/", name="logout")
      */
     public function logout()
     {
@@ -101,7 +95,6 @@ class SecurityController extends AbstractController
     /**
      * @param SecurityUserProvider $manager
      * @param string $username
-     * @Route("/security/email/{username}/reset/token/", name="send_email_password_reset_token")
      */
     public function sendEmailPasswordResetCode(SecurityUserProvider $manager, string $username, \Swift_Mailer $mailer)
     {
@@ -142,7 +135,6 @@ class SecurityController extends AbstractController
     /**
      * @param string $token
      * @param SecurityUserProvider $manager
-     * @Route("/security/password/reset/{token}/by/token/", name="reset_password_by_token")
      */
     public function resetPasswordByToken(string $token, SecurityUserProvider $manager, Request $request)
     {
@@ -170,7 +162,6 @@ class SecurityController extends AbstractController
     /**
      * @param string $token
      * @param SecurityUserProvider $manager
-     * @Route("/security/password/force/{user}/change/", name="force_password_change")
      */
     public function forcePasswordChange($user, SecurityUserProvider $provider, Request $request)
     {
