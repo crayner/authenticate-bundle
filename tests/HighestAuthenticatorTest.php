@@ -141,7 +141,8 @@ class HighestAuthenticatorTest extends TestCase
 
             $this->assertTrue($encoder->isPasswordValid($encoded, HighestAuthenticatorTest::PASSWORD, null));
             $this->assertEquals('argon2i', $encoder->getCurrentEncoder(), 'Encoder Name');
-        }
+        } else
+            $this->assertFalse(\PHP_VERSION_ID >= 70200);
     }
 
     /**
@@ -176,7 +177,8 @@ class HighestAuthenticatorTest extends TestCase
             $this->assertTrue($argon2id->isPasswordValid($encoded, HighestAuthenticatorTest::PASSWORD, null));
             $this->assertTrue($argon2id::isSupported());
             $this->assertStringStartsWith('$argon2id$v=19$m=16384,t=2,p=4$', $argon2id->encodePassword(HighestAuthenticatorTest::PASSWORD, null));
-        }
+        } else
+            $this->assertFalse(\PHP_VERSION_ID >= 70300);
     }
 
     /**
