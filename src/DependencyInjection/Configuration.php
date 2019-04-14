@@ -24,6 +24,7 @@ class Configuration implements ConfigurationInterface
     {
         $treeBuilder = new TreeBuilder('crayner_authenticate');
         $encoders = [
+            'argon2id',
             'argon2i',
             'bcrypt',
             'sha256',
@@ -41,9 +42,10 @@ class Configuration implements ConfigurationInterface
                         ->integerNode('iterations_md5')->defaultValue(1)->min(1)->max(32000)->end()
                         ->booleanNode('encode_as_base64')->defaultFalse()->end()
                         ->scalarNode('password_salt_mask')->defaultValue('{password}{{salt}}')->end()
-                        ->enumNode('maximum_available')->values($encoders)->defaultValue('argon2i')->end()
+                        ->enumNode('maximum_available')->values($encoders)->defaultValue('argon2id')->end()
                         ->enumNode('minimum_available')->values($encoders)->defaultValue('md5')->end()
                         ->booleanNode('always_upgrade')->defaultTrue()->end()
+                        ->booleanNode('store_salt_separately')->defaultFalse()->end()
                     ->end()
                 ->end()
                 ->arrayNode('manage_failures')->addDefaultsIfNotSet()

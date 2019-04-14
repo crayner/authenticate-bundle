@@ -25,8 +25,8 @@ matrix:
         # than 2 or 3 respectively. Read more at https://github.com/symfony/lts
 #        - php: 7.2
 #          env: DEPENDENCIES="symfony/lts:^2"
-#        - php: 7.2
-#          env: DEPENDENCIES="symfony/lts:^3"
+        - php: 7.2
+          env: DEPENDENCIES="symfony/lts:^3"
          # Latest commit to master
         - php: 7.3
           env: STABILITY="dev"

@@ -46,21 +46,37 @@ class HighestAvailableEncoder extends BasePasswordEncoder
     )
     {
         if (strpos($options['password_salt_mask'], '{password}') === false or strpos($options['password_salt_mask'], '{salt}') === false)
-            throw new \InvalidArgumentException(sprintf('The %s requires that the "password_salt_mask" contains both "{password}" and "{salt}".  The current "password_salt_mask" is "%s" and can be changed in the config/packages/crayner_authentication.yaml file.', HighestAvailableEncoder::class, $options['password_salt_mask']));
+            throw new \InvalidArgumentException(sprintf('The %s class requires that the "password_salt_mask" contains both "{password}" and "{salt}".  The current "password_salt_mask" is "%s" and can be changed in the config/packages/crayner_authentication.yaml file.', HighestAvailableEncoder::class, $options['password_salt_mask']));
+
         $this->config = $options;
 
         $this->available = null;
-        if (\defined('PASSWORD_ARGON2I')) {
-            $this->available = 'argon2i';
+
+        if (\PHP_VERSION_ID >= 70300 && \defined('PASSWORD_ARGON2ID') && $options['maximum_available'] === 'argon2id') {
+            $this->available = 'argon2id';
         }
 
-        if (\defined('PASSWORD_BCRYPT')) {
+        if (\PHP_VERSION_ID >= 70200 && \defined('PASSWORD_ARGON2I') && in_array($options['maximum_available'], ['argon2id', 'argon2i'])) {
+            $this->available = $this->available ?: 'argon2i';
+        }
+
+        if (\defined('PASSWORD_BCRYPT') && in_array($options['maximum_available'], ['argon2id', 'argon2i', 'bcrypt'])) {
             $this->available = $this->available ?: 'bcrypt';
         }
 
-        if (empty($this->available)) {
+        if (empty($this->available) && in_array($options['maximum_available'], ['argon2id', 'argon2i', 'bcrypt', 'sha256'])) {
             $this->available = $this->available ?: 'sha256';
         }
+
+        $this->available = $this->available ?: 'md5';
+    }
+
+    /**
+     * @return string
+     */
+    public function getAvailable(): string
+    {
+        return $this->available =  $this->available ?: 'md5';
     }
 
     /**
@@ -84,11 +100,15 @@ class HighestAvailableEncoder extends BasePasswordEncoder
         if (\defined('PASSWORD_BCRYPT') && in_array($this->config['maximum_available'], ['argon2i', 'bcrypt']))
             $encoder = $this->getBCryptEncoder();
 
-        if (\defined('PASSWORD_ARGON2I') && $this->config['maximum_available'] === 'argon2i')
+        if (\PHP_VERSION_ID >= 70200 && \defined('PASSWORD_ARGON2I') && $this->config['maximum_available'] === 'argon2i')
+            $encoder = $this->getArgon2iEncoder();
+
+        if (\PHP_VERSION_ID >= 70300 && \defined('PASSWORD_ARGON2ID') && $this->config['maximum_available'] === 'argon2id')
             $encoder = $this->getArgon2iEncoder();
 
         return $encoder->encodePassword($raw, $salt ?: null);
     }
+
     /**
      * Checks a raw password against an encoded password.
      *
@@ -103,30 +123,30 @@ class HighestAvailableEncoder extends BasePasswordEncoder
     public function isPasswordValid($encoded, $raw, $salt)
     {
         $valid = false;
-        $this->currentEncoder = 'argon2i';
-        if (\defined('PASSWORD_ARGON2I') && $this->config['maximum_available'] === 'argon2i') {
-            $encoder = $this->getArgon2iEncoder();
-            $valid = $encoder->isPasswordValid($encoded, $raw, $salt);
-            if ($valid)
-                return true;
+
+        $passwordInfo = password_get_info($encoded);
+        if ($passwordInfo['algo'] > 0 || in_array($this->config['minimum_available'], ['bcrypt', 'argon2i', 'argon2id'])) {
+
+            $this->currentEncoder = $passwordInfo['algoName'] !== 'unknown' ? $passwordInfo['algoName'] : $this->config['minimum_available'];
+            switch ($this->currentEncoder) {
+                case 'argon2id':
+                    $encoder = $this->getArgon2idEncoder();
+                    break;
+                case 'argon2i':
+                    $encoder = $this->getArgon2iEncoder();
+                    break;
+                case 'bcrypt':
+                    $encoder = $this->getBCryptEncoder();
+                    break;
+                default:
+                    throw new \InvalidArgumentException(sprintf('Unable to handle %s encryption.', $this->currentEncoder));
+            }
+
+            return $encoder->isPasswordValid($encoded, $raw, $salt);
         }
-
-        if ($this->config['minimum_available'] === 'argon2i')
-            return false;
-
-        $this->currentEncoder = 'bcrypt';
-        if (\defined('PASSWORD_BCRYPT') && in_array($this->config['maximum_available'], ['argon2i', 'bcrypt'])){
-            $encoder = $this->getBCryptEncoder();
-            $valid = $encoder->isPasswordValid($encoded, $raw, $salt);
-            if ($valid)
-                return true;
-        }
-
-        if ($this->config['minimum_available'] === 'bcrypt')
-            return false;
 
         $this->currentEncoder = 'sha256';
-        if (! empty($salt) && $this->config['maximum_available'] !== 'md5') {
+        if (!empty($salt) && $this->config['maximum_available'] !== 'md5') {
             $encoder = $this->getSHA256Encoder();
             $valid = $encoder->isPasswordValid($encoded, $raw, $salt);
             if ($valid)
@@ -140,6 +160,14 @@ class HighestAvailableEncoder extends BasePasswordEncoder
         $encoder = $this->getMD5Encoder();
 
         return $encoder->isPasswordValid($encoded, $raw, $salt ?: null);
+    }
+
+    /**
+     * @return string
+     */
+    public function getCurrentEncoder(): string
+    {
+        return $this->currentEncoder;
     }
 
     /**
@@ -157,7 +185,7 @@ class HighestAvailableEncoder extends BasePasswordEncoder
      */
     private function getSHA256Encoder(): SHA256PasswordEncoder
     {
-        return new SHA256PasswordEncoder($this->config['encode_as_base64'], $this->config['iterations_sha256'], $this->config['password_salt_mask']);
+        return new SHA256PasswordEncoder($this->config['encode_as_base64'], $this->config['iterations_sha256'], $this->config['password_salt_mask'], $this->config['store_salt_separately']);
     }
 
     /**
@@ -176,6 +204,15 @@ class HighestAvailableEncoder extends BasePasswordEncoder
     private function getArgon2iEncoder(): Argon2iPasswordEncoder
     {
         return new Argon2iPasswordEncoder($this->config['memory_cost'], $this->config['time_cost'], $this->config['threads']);
+    }
+
+    /**
+     * getArgon2idEncoder
+     * @return Argon2idPasswordEncoder
+     */
+    private function getArgon2idEncoder(): Argon2idPasswordEncoder
+    {
+        return new Argon2idPasswordEncoder($this->config['memory_cost'], $this->config['time_cost'], $this->config['threads']);
     }
 
     /**

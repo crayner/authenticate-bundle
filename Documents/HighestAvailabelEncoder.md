@@ -1,16 +1,19 @@
 # Authenticate Bundle Project
-### Highest Available Encoder
+## Highest Available Encoder
 
 The Highest Available Encoder is defined with the following defaults when flex correctly loads the crayner_authentication.yaml file in the App config/packages directory.     Features include the ability to recognise the current user encoding and upgrade the encoded password to the best available.  The encode handles the following types of encoders, from highest to lowest:
-* Argon2i
-* Bcrypt
+* Argon2id  (PHP 7.3+ Only)
+* Argon2i (PHP 7.2+ Only)
+* BCrypt
 * SHA256
 * MD5
+
+___NB___ I am aware that Argon encryption can work with PHP < 7.2 with libsodium installed, but the password encryption is NOT consistent form all libsodium versions to native PHP use on Argon, and therefore for compatibility reasons, Argon is ONLY offered in this encoder with Native PHP support. 
 
 ```yaml
 crayner_authenticate:
     highest_available_encoder:
-        # Argon2i Options
+        # Argon2i && Argon2id Options
         memory_cost: 1024
         time_cost: 2
         threads: 4
@@ -21,19 +24,20 @@ crayner_authenticate:
         iterations_md5: 1
         encode_as_base64: false
         password_salt_mask: '{password}{{salt}}'
+        store_salt_separately: false
         # Global Options
         maximum_available: 'argon2i'
         minimum_available: 'md5'
         always_upgrade: true
 ```
-#### Argon2i
+#### Argon2i and Argon2id
 * memory cost
 * time_cost
 * threads
 
-Details for Argon2i can be found at <a href="https://www.php.net/manual/en/password.constants.php#constant.password-argon2i" target="_blank">https://www.php.net/manual/en/password.constants.php</a>
+Details for Argon2i and Argon2id can be found at <a href="https://www.php.net/manual/en/password.constants.php" target="_blank">https://www.php.net/manual/en/password.constants.php</a>
 
-#### Bcrypt
+#### BCrypt
 * cost
 
 Details for Bcrypt can be found at <a href="https://www.php.net/manual/en/password.constants.php#constant.password-bcrypt" target="_blank">https://www.php.net/manual/en/password.constants.php</a>
@@ -44,6 +48,7 @@ Details for Bcrypt can be found at <a href="https://www.php.net/manual/en/passwo
 * password_salt_mask  This mask must contain both __{password}__ and __{salt}__ and will take the raw password with a salt provided by the user entity.  Examples of the mask include 
     * _'{salt}.{password}'_ 
     * or the default _'{password}{{salt}}'_
+* store_salt_separately boolean value. If true, the storage of the salt is independent of the encoder, otherwise the salt and encoded password are merged and stored as one string using the _password_salt_mask_. Default: false   
 
 If the password = 'your_password' and the salt = 'a_secret_salt' then the two examples shown would merge the password and salt as:
 * _'a_secret_salt.your_password'_ 
