@@ -104,7 +104,7 @@ class HighestAvailableEncoder extends BasePasswordEncoder
             $encoder = $this->getArgon2iEncoder();
 
         if (\PHP_VERSION_ID >= 70300 && \defined('PASSWORD_ARGON2ID') && $this->config['maximum_available'] === 'argon2id')
-            $encoder = $this->getArgon2iEncoder();
+            $encoder = $this->getArgon2idEncoder();
 
         return $encoder->encodePassword($raw, $salt ?: null);
     }

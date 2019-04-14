@@ -187,7 +187,7 @@ class HighestAuthenticatorTest extends TestCase
     public function testUpgradePassword()
     {
         $config = [
-            'maximum_available' => 'argon2id',
+            'maximum_available' => 'bcrypt',
             'minimum_available' => 'md5',
             'password_salt_mask' => '{password}{{salt}}',
             'iterations_sha256' => 1,
@@ -203,14 +203,19 @@ class HighestAuthenticatorTest extends TestCase
         $encoder->setConfiguration($config);
         $encoded = md5(HighestAuthenticatorTest::PASSWORD);
 
-        $this->assertStringStartsWith('$argon2i$v=19$m=16384,t=2,p=4$', $encoder->encodePassword(HighestAuthenticatorTest::PASSWORD, null));
+        $prefix = '$2y$15$';
+        if (\PHP_VERSION_ID >= 70200 && $encoder->getAvailable() === 'argon2i')
+            $prefix = '$argon2i$v=19$m=16384,t=2,p=4$';
+        if (\PHP_VERSION_ID >= 70300 && $encoder->getAvailable() === 'argon2id')
+            $prefix = '$argon2id$v=19$m=16384,t=2,p=4$';
+
         $this->assertTrue($encoder->isPasswordValid($encoded, HighestAuthenticatorTest::PASSWORD, null));
         $this->assertEquals($encoded, $encoder->upgradePassword($encoded, HighestAuthenticatorTest::PASSWORD, null));
-        $this->assertStringStartsWith('$argon2i$v=19$m=16384,t=2,p=4$', $encoder->upgradePassword($encoded, HighestAuthenticatorTest::PASSWORD, null, true));
+        $this->assertStringStartsWith($prefix, $encoder->upgradePassword($encoded, HighestAuthenticatorTest::PASSWORD, null, true));
 
         $config['always_upgrade'] = true;
         $encoder->setConfiguration($config);
-        $this->assertStringStartsWith('$argon2i$v=19$m=16384,t=2,p=4$', $encoder->upgradePassword($encoded, HighestAuthenticatorTest::PASSWORD, null, true));
+        $this->assertStringStartsWith($prefix, $encoder->upgradePassword($encoded, HighestAuthenticatorTest::PASSWORD, null, true), 'Password should upgrade');
     }
 
     public function testMinimumEncoder()
