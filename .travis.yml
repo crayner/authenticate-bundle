@@ -35,6 +35,8 @@ matrix:
     allow_failures:
         # Dev-master is allowed to fail.
         - env: STABILITY="dev" COMPOSER_MEMORY_LIMIT="-1"
+before_script:
+    - pecl install libsodium
 before_install:
     - if [[ $COVERAGE != true ]]; then phpenv config-rm xdebug.ini || true; fi
     - if ! [ -z "$STABILITY" ]; then composer config minimum-stability ${STABILITY}; fi;
