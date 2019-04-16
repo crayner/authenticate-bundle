@@ -1,7 +1,7 @@
 # Authenticate Bundle Project
 ### Symfony 4+ Authenticate Bundle Project
 
-___Version 1.1.1___
+___Version 1.1.2___
 
 ## Features
 * [Highest Available Encoder](Documents/HighestAvailabelEncoder.md)
