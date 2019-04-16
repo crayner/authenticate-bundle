@@ -11,6 +11,8 @@
  */
 namespace Crayner\Authenticate\DependencyInjection;
 
+use Crayner\Authenticate\Core\Argon2idPasswordEncoder;
+use Crayner\Authenticate\Core\Argon2iPasswordEncoder;
 use Crayner\Authenticate\Core\AuthenticateManager;
 use Crayner\Authenticate\Core\HighestAvailableEncoder;
 use Crayner\Authenticate\Core\LoginFormAuthenticator;
@@ -59,6 +61,34 @@ class CraynerAuthenticateExtension extends Extension
                 ->addMethodCall('setFailureConfig', [$config['manage_failures']])
                 ->addMethodCall('setUserClass', [$config['user_class']])
                 ->addMethodCall('setRotatePassword', [$config['rotate_password']])
+            ;
+        }
+
+        if ($container->has(Argon2iPasswordEncoder::class))
+        {
+            $container
+                ->getDefinition(Argon2iPasswordEncoder::class)
+                ->addMethodCall('setConfig',
+                    [
+                        'memory_cost' => $config['memory_cost'] ?? \PASSWORD_ARGON2_DEFAULT_MEMORY_COST,
+                        'time_cost' => $config['time_cost'] ?? \PASSWORD_ARGON2_DEFAULT_TIME_COST,
+                        'threads' => $config['threads'] ?? \PASSWORD_ARGON2_DEFAULT_THREADS,
+                    ]
+                )
+            ;
+        }
+
+        if ($container->has(Argon2idPasswordEncoder::class))
+        {
+            $container
+                ->getDefinition(Argon2iDPasswordEncoder::class)
+                ->addMethodCall('setConfig',
+                    [
+                        'memory_cost' => $config['memory_cost'] ?? \PASSWORD_ARGON2_DEFAULT_MEMORY_COST,
+                        'time_cost' => $config['time_cost'] ?? \PASSWORD_ARGON2_DEFAULT_TIME_COST,
+                        'threads' => $config['threads'] ?? \PASSWORD_ARGON2_DEFAULT_THREADS,
+                    ]
+                )
             ;
         }
 

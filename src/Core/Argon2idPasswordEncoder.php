@@ -35,12 +35,24 @@ class Argon2idPasswordEncoder extends BasePasswordEncoder implements SelfSalting
     public function __construct(int $memoryCost = null, int $timeCost = null, int $threads = null)
     {
         if (self::isSupported()) {
-            $this->config = [
-                'memory_cost' => $memoryCost ?? \PASSWORD_ARGON2_DEFAULT_MEMORY_COST,
-                'time_cost' => $timeCost ?? \PASSWORD_ARGON2_DEFAULT_TIME_COST,
-                'threads' => $threads ?? \PASSWORD_ARGON2_DEFAULT_THREADS,
-            ];
+            $this->setConfig(
+                [
+                    'memory_cost' => $memoryCost ?? \PASSWORD_ARGON2_DEFAULT_MEMORY_COST,
+                    'time_cost' => $timeCost ?? \PASSWORD_ARGON2_DEFAULT_TIME_COST,
+                    'threads' => $threads ?? \PASSWORD_ARGON2_DEFAULT_THREADS,
+                ]
+            );
         }
+    }
+
+    /**
+     * @param array $config
+     * @return Argon2iPasswordEncoder
+     */
+    public function setConfig(array $config): Argon2iPasswordEncoder
+    {
+        $this->config = $config;
+        return $this;
     }
 
     public static function isSupported()
