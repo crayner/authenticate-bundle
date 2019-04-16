@@ -2,13 +2,13 @@
 ## Highest Available Encoder
 
 The Highest Available Encoder is defined with the following defaults when flex correctly loads the crayner_authentication.yaml file in the App config/packages directory.     Features include the ability to recognise the current user encoding and upgrade the encoded password to the best available.  The encode handles the following types of encoders, from highest to lowest:
-* Argon2id  (PHP 7.3+ Only)
-* Argon2i (PHP 7.2+ Only)
+* Argon2id
+* Argon2i
 * BCrypt
 * SHA256
 * MD5
 
-___NB___ I am aware that Argon encryption can work with PHP < 7.2 with libsodium installed, but the password encryption is NOT consistent form all libsodium versions to native PHP use on Argon, and therefore for compatibility reasons, Argon is ONLY offered in this encoder with Native PHP support. 
+___NB___ Symfony is moving away from native support for Argon2* support with Symfony 4.3+.  This bundle will use the LibSodium SodiumPasswordEncoder of Symfony 4.3+.  The SodiumPasswordEncoder in Symfony ignores the Argon2* options.  This bundle will default to the libsodium 
 
 ```yaml
 crayner_authenticate:
@@ -17,6 +17,7 @@ crayner_authenticate:
         memory_cost: 1024
         time_cost: 2
         threads: 4
+        sodium: true
         # BCrypt Options
         cost: 12
         # SHA256/MD5 Options
@@ -34,6 +35,7 @@ crayner_authenticate:
 * memory cost
 * time_cost
 * threads
+* Use Lib Sodium if true, or default to PHP Argon2* native support when false. 
 
 Details for Argon2i and Argon2id can be found at <a href="https://www.php.net/manual/en/password.constants.php" target="_blank">https://www.php.net/manual/en/password.constants.php</a>
 

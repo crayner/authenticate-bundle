@@ -12,16 +12,20 @@
 namespace Crayner\Authenticate\Tests;
 
 use Crayner\Authenticate\Core\Argon2idPasswordEncoder;
+use Crayner\Authenticate\Core\Argon2iPasswordEncoder;
 use Crayner\Authenticate\Core\HighestAvailableEncoder;
 use Crayner\Authenticate\Core\MD5PasswordEncoder;
 use Crayner\Authenticate\Core\SHA256PasswordEncoder;
-use PHPUnit\Framework\TestCase;
+use Crayner\Authenticate\Core\SodiumPasswordEncoder;
+use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\Security\Core\Encoder\BCryptPasswordEncoder;
+use Symfony\Component\Security\Core\Encoder\SelfSaltingEncoderInterface;
 
 /**
  * Class HighestAuthenticatorTest
  * @package Crayner\Authenticate\Tests
  */
-class HighestAuthenticatorTest extends TestCase
+class HighestAuthenticatorTest extends WebTestCase
 {
     /**
      * @var string
@@ -45,6 +49,7 @@ class HighestAuthenticatorTest extends TestCase
         $encoded = md5(HighestAuthenticatorTest::PASSWORD);
         $this->assertEquals($encoded, $encoder->encodePassword(HighestAuthenticatorTest::PASSWORD, null));
         $this->assertTrue($encoder->isPasswordValid($encoded, HighestAuthenticatorTest::PASSWORD, null));
+        $this->assertEquals(MD5PasswordEncoder::class, get_class($encoder->getEncoder()));
 
         $md5 = new MD5PasswordEncoder(1);
         $this->assertEquals($encoded, $md5->encodePassword(HighestAuthenticatorTest::PASSWORD, null));
@@ -72,6 +77,7 @@ class HighestAuthenticatorTest extends TestCase
         $encoded = hash_pbkdf2('sha256', HighestAuthenticatorTest::PASSWORD, $salt, 1, 40, true);
         $this->assertEquals(bin2hex($encoded), $encoder->encodePassword(HighestAuthenticatorTest::PASSWORD, $salt));
         $this->assertTrue($encoder->isPasswordValid(bin2hex($encoded), HighestAuthenticatorTest::PASSWORD, $salt));
+        $this->assertEquals(SHA256PasswordEncoder::class, get_class($encoder->getEncoder()));
 
         $config['encode_as_base64'] = true;
         $encoder->setConfiguration($config);
@@ -91,7 +97,7 @@ class HighestAuthenticatorTest extends TestCase
     }
 
     /**
-     * testSHA256Encoder
+     * testBCryptEncoder
      */
     public function testBCryptEncoder()
     {
@@ -114,10 +120,11 @@ class HighestAuthenticatorTest extends TestCase
         $encoded = password_hash(HighestAuthenticatorTest::PASSWORD, PASSWORD_BCRYPT, ['cost' => 15]);
 
         $this->assertTrue($encoder->isPasswordValid($encoded, HighestAuthenticatorTest::PASSWORD, null));
+        $this->assertEquals(BCryptPasswordEncoder::class, get_class($encoder->getEncoder()));
     }
 
     /**
-     * testSHA256Encoder
+     * testArgon2iEncoder
      */
     public function testArgon2iEncoder()
     {
@@ -133,6 +140,7 @@ class HighestAuthenticatorTest extends TestCase
                 'memory_cost' => 16384,
                 'time_cost' => 2,
                 'threads' => 4,
+                'sodium' => false,
             ];
             $encoder = new HighestAvailableEncoder();
             $encoder->setConfiguration($config);
@@ -140,13 +148,14 @@ class HighestAuthenticatorTest extends TestCase
             $encoded = password_hash(HighestAuthenticatorTest::PASSWORD, PASSWORD_ARGON2I, $config);
 
             $this->assertTrue($encoder->isPasswordValid($encoded, HighestAuthenticatorTest::PASSWORD, null));
-            $this->assertEquals('argon2i', $encoder->getCurrentEncoder(), 'Encoder Name');
+            $this->assertEquals(Argon2iPasswordEncoder::class, get_class($encoder->getEncoder()));
+            $this->assertEquals('argon2i', $encoder->getCurrentEncoder(), 'Encoder should be argon2i');
         } else
             $this->assertFalse(\PHP_VERSION_ID >= 70200);
     }
 
     /**
-     * testSHA256Encoder
+     * testArgon2idEncoder
      */
     public function testArgon2idEncoder()
     {
@@ -162,6 +171,7 @@ class HighestAuthenticatorTest extends TestCase
                 'memory_cost' => 16384,
                 'time_cost' => 2,
                 'threads' => 4,
+                'sodium' => false,
             ];
             $encoder = new HighestAvailableEncoder();
             $encoder->setConfiguration($config);
@@ -171,14 +181,46 @@ class HighestAuthenticatorTest extends TestCase
             $this->assertStringStartsWith('$argon2id$v=19$m=16384,t=2,p=4$', $encoded);
 
             $this->assertTrue($encoder->isPasswordValid($encoded, HighestAuthenticatorTest::PASSWORD, null));
-            $this->assertEquals('argon2id', $encoder->getCurrentEncoder());
+            $this->assertEquals('argon2id', $encoder->getCurrentEncoder(), 'Encoder should be argon2id');
 
             $argon2id = new Argon2idPasswordEncoder(16384, 2, 4);
             $this->assertTrue($argon2id->isPasswordValid($encoded, HighestAuthenticatorTest::PASSWORD, null));
+            $this->assertEquals(Argon2idPasswordEncoder::class, get_class($encoder->getEncoder()));
             $this->assertTrue($argon2id::isSupported());
             $this->assertStringStartsWith('$argon2id$v=19$m=16384,t=2,p=4$', $argon2id->encodePassword(HighestAuthenticatorTest::PASSWORD, null));
         } else
             $this->assertFalse(\PHP_VERSION_ID >= 70300);
+    }
+
+    /**
+     * testSodiumEncoder
+     * @throws \SodiumException
+     */
+    public function testSodiumEncoder()
+    {
+        if (SodiumPasswordEncoder::isSupported()) {
+            $config = [
+                'maximum_available' => 'argon2id',
+                'minimum_available' => 'md5',
+                'password_salt_mask' => '{password}{{salt}}',
+                'iterations_sha256' => 1,
+                'iterations_md5' => 1,
+                'encode_as_base64' => false,
+                'cost' => 15,
+                'memory_cost' => 16384,
+                'time_cost' => 2,
+                'threads' => 4,
+                'sodium' => true,
+            ];
+            $encoded = password_hash(HighestAuthenticatorTest::PASSWORD, PASSWORD_ARGON2ID, $config);
+            $sodium = SodiumPasswordEncoder::createEncoder(16384,2,4, true);
+            $this->assertTrue(in_array(SelfSaltingEncoderInterface::class, class_implements($sodium)));
+            $this->assertTrue(in_array(get_class($sodium), [SodiumPasswordEncoder::class, 'Symfony\Component\Security\Core\SodiumPasswordEncoder']));
+            $this->assertTrue($sodium->isPasswordValid($encoded, HighestAuthenticatorTest::PASSWORD, null));
+            $this->assertTrue(SodiumPasswordEncoder::isSupported());
+            $this->assertStringStartsWith('$argon2id$v=19$m=65536,t=2,p=1$', $sodium->encodePassword(HighestAuthenticatorTest::PASSWORD, null));
+        } else
+            $this->assertFalse(SodiumPasswordEncoder::isSupported());
     }
 
     /**
@@ -197,6 +239,7 @@ class HighestAuthenticatorTest extends TestCase
             'memory_cost' => 16384,
             'time_cost' => 2,
             'threads' => 4,
+            'sodium' => true,
             'always_upgrade' => false,
         ];
         $encoder = new HighestAvailableEncoder();
@@ -204,10 +247,6 @@ class HighestAuthenticatorTest extends TestCase
         $encoded = md5(HighestAuthenticatorTest::PASSWORD);
 
         $prefix = '$2y$15$';
-        if (\PHP_VERSION_ID >= 70200 && $encoder->getAvailable() === 'argon2i')
-            $prefix = '$argon2i$v=19$m=16384,t=2,p=4$';
-        if (\PHP_VERSION_ID >= 70300 && $encoder->getAvailable() === 'argon2id')
-            $prefix = '$argon2id$v=19$m=16384,t=2,p=4$';
 
         $this->assertTrue($encoder->isPasswordValid($encoded, HighestAuthenticatorTest::PASSWORD, null));
         $this->assertEquals($encoded, $encoder->upgradePassword($encoded, HighestAuthenticatorTest::PASSWORD, null));
@@ -216,6 +255,7 @@ class HighestAuthenticatorTest extends TestCase
         $config['always_upgrade'] = true;
         $encoder->setConfiguration($config);
         $this->assertStringStartsWith($prefix, $encoder->upgradePassword($encoded, HighestAuthenticatorTest::PASSWORD, null, true), 'Password should upgrade');
+        $this->assertEquals(BCryptPasswordEncoder::class, get_class($encoder->getEncoder()));
     }
 
     public function testMinimumEncoder()
@@ -240,5 +280,6 @@ class HighestAuthenticatorTest extends TestCase
 
         $this->assertFalse($encoder->isPasswordValid($encoded, HighestAuthenticatorTest::PASSWORD, null));
         $this->assertStringStartsWith('$2y$15$', $encoder->encodePassword(HighestAuthenticatorTest::PASSWORD, null));
+        $this->assertEquals(BCryptPasswordEncoder::class, get_class($encoder->getEncoder()));
     }
 }

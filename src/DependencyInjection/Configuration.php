@@ -37,6 +37,7 @@ class Configuration implements ConfigurationInterface
                         ->integerNode('memory_cost')->defaultValue(16384)->end()
                         ->integerNode('time_cost')->defaultValue(2)->end()
                         ->integerNode('threads')->defaultValue(4)->end()
+                        ->booleanNode('sodium')->defaultTrue()->end()
                         ->integerNode('cost')->defaultValue(\PASSWORD_BCRYPT_DEFAULT_COST)->min(4)->max(31)->end()
                         ->integerNode('iterations_sha256')->defaultValue(1000)->min(1)->max(32000)->end()
                         ->integerNode('iterations_md5')->defaultValue(1)->min(1)->max(32000)->end()
