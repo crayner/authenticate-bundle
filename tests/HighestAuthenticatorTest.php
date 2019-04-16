@@ -194,7 +194,6 @@ class HighestAuthenticatorTest extends WebTestCase
 
     /**
      * testSodiumEncoder
-     * @throws \SodiumException
      */
     public function testSodiumEncoder()
     {
@@ -212,8 +211,12 @@ class HighestAuthenticatorTest extends WebTestCase
                 'threads' => 4,
                 'sodium' => true,
             ];
-            $encoded = password_hash(HighestAuthenticatorTest::PASSWORD, PASSWORD_ARGON2ID, $config);
+            $algorithm = PHP_VERSION_ID >= 70300 ? PASSWORD_ARGON2ID : PASSWORD_ARGON2I ;
             $sodium = SodiumPasswordEncoder::createEncoder(16384,2,4, true);
+            if (PHP_VERSION_ID < 70200)
+                $encoded = $sodium->encodePassword(HighestAuthenticatorTest::PASSWORD, null);
+            else
+                $encoded = password_hash(HighestAuthenticatorTest::PASSWORD, $algorithm, $config);
             $this->assertTrue(in_array(SelfSaltingEncoderInterface::class, class_implements($sodium)));
             $this->assertTrue(in_array(get_class($sodium), [SodiumPasswordEncoder::class, 'Symfony\Component\Security\Core\SodiumPasswordEncoder']));
             $this->assertTrue($sodium->isPasswordValid($encoded, HighestAuthenticatorTest::PASSWORD, null));
