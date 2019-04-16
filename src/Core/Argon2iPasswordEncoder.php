@@ -46,6 +46,7 @@ class Argon2iPasswordEncoder extends BasePasswordEncoder implements SelfSaltingE
     }
 
     /**
+     * setConfig
      * @param array $config
      * @return Argon2iPasswordEncoder
      */

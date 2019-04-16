@@ -46,10 +46,11 @@ class Argon2idPasswordEncoder extends BasePasswordEncoder implements SelfSalting
     }
 
     /**
+     * setConfig
      * @param array $config
-     * @return Argon2iPasswordEncoder
+     * @return Argon2idPasswordEncoder
      */
-    public function setConfig(array $config): Argon2iPasswordEncoder
+    public function setConfig(array $config): Argon2idPasswordEncoder
     {
         $this->config = $config;
         return $this;
