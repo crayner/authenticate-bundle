@@ -70,9 +70,9 @@ class CraynerAuthenticateExtension extends Extension
                 ->getDefinition(Argon2iPasswordEncoder::class)
                 ->addMethodCall('setConfig',
                     [
-                        'memory_cost' => $config['memory_cost'] ?? \PASSWORD_ARGON2_DEFAULT_MEMORY_COST,
-                        'time_cost' => $config['time_cost'] ?? \PASSWORD_ARGON2_DEFAULT_TIME_COST,
-                        'threads' => $config['threads'] ?? \PASSWORD_ARGON2_DEFAULT_THREADS,
+                        'memory_cost' => $config['memory_cost'] ?? (defined(\PASSWORD_ARGON2_DEFAULT_MEMORY_COST) ? \PASSWORD_ARGON2_DEFAULT_MEMORY_COST : 16384),
+                        'time_cost' => $config['time_cost'] ?? (defined(\PASSWORD_ARGON2_DEFAULT_TIME_COST) ? \PASSWORD_ARGON2_DEFAULT_TIME_COST : 2),
+                        'threads' => $config['threads'] ?? (defined(\PASSWORD_ARGON2_DEFAULT_THREADS) ? \PASSWORD_ARGON2_DEFAULT_THREADS : 4),
                     ]
                 )
             ;
@@ -84,9 +84,9 @@ class CraynerAuthenticateExtension extends Extension
                 ->getDefinition(Argon2iDPasswordEncoder::class)
                 ->addMethodCall('setConfig',
                     [
-                        'memory_cost' => $config['memory_cost'] ?? \PASSWORD_ARGON2_DEFAULT_MEMORY_COST,
-                        'time_cost' => $config['time_cost'] ?? \PASSWORD_ARGON2_DEFAULT_TIME_COST,
-                        'threads' => $config['threads'] ?? \PASSWORD_ARGON2_DEFAULT_THREADS,
+                        'memory_cost' => $config['memory_cost'] ?? (defined(\PASSWORD_ARGON2_DEFAULT_MEMORY_COST) ? \PASSWORD_ARGON2_DEFAULT_MEMORY_COST : 16384),
+                        'time_cost' => $config['time_cost'] ?? (defined(\PASSWORD_ARGON2_DEFAULT_TIME_COST) ? \PASSWORD_ARGON2_DEFAULT_TIME_COST : 2),
+                        'threads' => $config['threads'] ?? (defined(\PASSWORD_ARGON2_DEFAULT_THREADS) ? \PASSWORD_ARGON2_DEFAULT_THREADS : 4),
                     ]
                 )
             ;
