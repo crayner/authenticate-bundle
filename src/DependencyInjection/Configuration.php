@@ -30,7 +30,15 @@ class Configuration implements ConfigurationInterface
             'sha256',
             'md5',
         ];
-        $treeBuilder->getRootNode()
+
+        if (method_exists($treeBuilder, 'getRootNode')) {
+            $rootNode = $treeBuilder->getRootNode();
+        } else {
+            // BC layer for symfony/config 4.1 and older
+            $rootNode = $treeBuilder->root('crayner_authenticate');
+        }
+
+        $rootNode
             ->children()
                 ->arrayNode('highest_available_encoder')->addDefaultsIfNotSet()
                     ->children()
