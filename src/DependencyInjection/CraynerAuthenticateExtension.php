@@ -64,29 +64,29 @@ class CraynerAuthenticateExtension extends Extension
             ;
         }
 
-        if ($container->has(Argon2iPasswordEncoder::class))
+        if ($container->has(Argon2iPasswordEncoder::class) && PHP_VERSION_ID >= 70200)
         {
             $container
                 ->getDefinition(Argon2iPasswordEncoder::class)
                 ->addMethodCall('setConfig',
                     [
-                        'memory_cost' => $config['memory_cost'] ?? (defined(\PASSWORD_ARGON2_DEFAULT_MEMORY_COST) ? \PASSWORD_ARGON2_DEFAULT_MEMORY_COST : 16384),
-                        'time_cost' => $config['time_cost'] ?? (defined(\PASSWORD_ARGON2_DEFAULT_TIME_COST) ? \PASSWORD_ARGON2_DEFAULT_TIME_COST : 2),
-                        'threads' => $config['threads'] ?? (defined(\PASSWORD_ARGON2_DEFAULT_THREADS) ? \PASSWORD_ARGON2_DEFAULT_THREADS : 4),
+                        'memory_cost' => $config['memory_cost'] ?? \PASSWORD_ARGON2_DEFAULT_MEMORY_COST,
+                        'time_cost' => $config['time_cost'] ?? \PASSWORD_ARGON2_DEFAULT_TIME_COST,
+                        'threads' => $config['threads'] ?? \PASSWORD_ARGON2_DEFAULT_THREADS,
                     ]
                 )
             ;
         }
 
-        if ($container->has(Argon2idPasswordEncoder::class))
+        if ($container->has(Argon2idPasswordEncoder::class) && PHP_VERSION_ID >= 70300)
         {
             $container
                 ->getDefinition(Argon2iDPasswordEncoder::class)
                 ->addMethodCall('setConfig',
                     [
-                        'memory_cost' => $config['memory_cost'] ?? (defined(\PASSWORD_ARGON2_DEFAULT_MEMORY_COST) ? \PASSWORD_ARGON2_DEFAULT_MEMORY_COST : 16384),
-                        'time_cost' => $config['time_cost'] ?? (defined(\PASSWORD_ARGON2_DEFAULT_TIME_COST) ? \PASSWORD_ARGON2_DEFAULT_TIME_COST : 2),
-                        'threads' => $config['threads'] ?? (defined(\PASSWORD_ARGON2_DEFAULT_THREADS) ? \PASSWORD_ARGON2_DEFAULT_THREADS : 4),
+                        'memory_cost' => $config['memory_cost'] ?? \PASSWORD_ARGON2_DEFAULT_MEMORY_COST,
+                        'time_cost' => $config['time_cost'] ?? \PASSWORD_ARGON2_DEFAULT_TIME_COST,
+                        'threads' => $config['threads'] ?? \PASSWORD_ARGON2_DEFAULT_THREADS,
                     ]
                 )
             ;
