@@ -16,7 +16,6 @@
     ],
     "require": {
         "php": ">=7.0",
-        "ext-sodium": "*",
         "paragonie/sodium_compat": "^1.9",
         "symfony/console": "^3.4 || ^4.0",
         "symfony/dotenv": "^3.4 || ^4.0",
