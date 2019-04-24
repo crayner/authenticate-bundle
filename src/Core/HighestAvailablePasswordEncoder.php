@@ -16,10 +16,10 @@ use Symfony\Component\Security\Core\Encoder\PlaintextPasswordEncoder;
 use Symfony\Component\Security\Core\Encoder\SelfSaltingEncoderInterface;
 
 /**
- * Class HighestAvailableEncoder
+ * Class HighestAvailablePasswordEncoder
  * @package Crayner\Authenticate\Core
  */
-class HighestAvailableEncoder implements PasswordEncoderInterface, SelfSaltingEncoderInterface
+class HighestAvailablePasswordEncoder implements PasswordEncoderInterface, SelfSaltingEncoderInterface
 {
     private $allEncoders = [
         'argon2' => 16,

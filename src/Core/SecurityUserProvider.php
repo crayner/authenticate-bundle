@@ -133,7 +133,7 @@ class SecurityUserProvider implements UserProviderInterface
     }
 
     /**
-     * @var HighestAvailableEncoder
+     * @var HighestAvailablePasswordEncoder
      */
     private $encoder;
 
@@ -146,7 +146,7 @@ class SecurityUserProvider implements UserProviderInterface
      * SecurityUserProvider constructor.
      * @param UserRepository $repository
      */
-    public function __construct(EntityManagerInterface $em, HighestAvailableEncoder $encoder, Messages $messages)
+    public function __construct(EntityManagerInterface $em, HighestAvailablePasswordEncoder $encoder, Messages $messages)
     {
         $this->userRepository = $em->getRepository(User::class);
         $this->entityManager = $em;
@@ -237,9 +237,9 @@ class SecurityUserProvider implements UserProviderInterface
     }
 
     /**
-     * @return HighestAvailableEncoder
+     * @return HighestAvailablePasswordEncoder
      */
-    public function getEncoder(): HighestAvailableEncoder
+    public function getEncoder(): HighestAvailablePasswordEncoder
     {
         return $this->encoder;
     }
