@@ -19,7 +19,6 @@ use Crayner\Authenticate\Core\SHA256PasswordEncoder;
 use Crayner\Authenticate\Core\SodiumPasswordEncoder;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\Security\Core\Encoder\PlaintextPasswordEncoder;
-use Symfony\Component\Security\Core\Encoder\SelfSaltingEncoderInterface;
 
 /**
  * Class HighestAvailablePasswordEncoderTest
@@ -133,7 +132,7 @@ class HighestAvailablePasswordEncoderTest extends WebTestCase
     }
 
     /**
-     * testArgon2iEncoder
+     * testNativeEncoder
      */
     public function testNativeEncoder()
     {
@@ -151,12 +150,12 @@ class HighestAvailablePasswordEncoderTest extends WebTestCase
             $encoder->setConfiguration($config);
             $this->assertEquals(16, $encoder->getAvailable());
 
-
             $encoded = password_hash(HighestAvailablePasswordEncoderTest::PASSWORD, PASSWORD_BCRYPT, $config);
 
             $this->assertTrue($encoder->isPasswordValid($encoded, HighestAvailablePasswordEncoderTest::PASSWORD, null), 'The password is not valid.');
             $this->assertEquals(NativePasswordEncoder::class, get_class($encoder->getEncoder()));
-            $this->assertTrue($encoder->isRehashPasswordRequired($encoded),'A rehash is not required.');
+            if (\PHP_VERSION_ID >= 70200 )
+                $this->assertTrue($encoder->isRehashPasswordRequired($encoded),'Rehash not required.');
 
 
         } else
@@ -228,9 +227,12 @@ class HighestAvailablePasswordEncoderTest extends WebTestCase
         $config['always_upgrade'] = true;
         $encoder->setConfiguration($config);
         $this->assertTrue($encoder->isPasswordValid($encoded, HighestAvailablePasswordEncoderTest::PASSWORD, null),'Password is not valid');
-        $this->assertTrue($encoder->isRehashPasswordRequired($encoded), 'Rehash Required.');
+        $this->assertTrue($encoder->isRehashPasswordRequired($encoded), 'Rehash not Required.');
         $this->assertStringStartsWith($prefix, $encoder->encodePassword(HighestAvailablePasswordEncoderTest::PASSWORD, null), 'Password should upgrade');
-        $this->assertEquals(SodiumPasswordEncoder::class, get_class($encoder->getEncoder()));
+        if (\PHP_VERSION_ID >= 70200)
+            $this->assertEquals(SodiumPasswordEncoder::class, get_class($encoder->getEncoder()));
+        else
+            $this->assertEquals(NativePasswordEncoder::class, get_class($encoder->getEncoder()));
 
         //Assert all the encoders.
         $encoders = [];
@@ -240,7 +242,11 @@ class HighestAvailablePasswordEncoderTest extends WebTestCase
         $this->assertTrue(in_array(MD5PasswordEncoder::class, $encoders), MD5PasswordEncoder::class);
         $this->assertTrue(in_array(SHA256PasswordEncoder::class, $encoders), SHA256PasswordEncoder::class);
         $this->assertTrue(in_array(BCryptPasswordEncoder::class, $encoders), BCryptPasswordEncoder::class);
-        $this->assertTrue(in_array(SodiumPasswordEncoder::class, $encoders), SodiumPasswordEncoder::class);
+        if (\PHP_VERSION_ID >= 70200)
+            $this->assertTrue(in_array(SodiumPasswordEncoder::class, $encoders), SodiumPasswordEncoder::class);
+        else
+            $this->assertTrue(in_array(NativePasswordEncoder::class, $encoders), NativePasswordEncoder::class);
+
 
         $config['sodium'] = false;
         $encoder->setConfiguration($config);
