@@ -11,248 +11,175 @@
  */
 namespace Crayner\Authenticate\Core;
 
-use Symfony\Component\Security\Core\Encoder\BasePasswordEncoder;
-use Symfony\Component\Security\Core\Encoder\BCryptPasswordEncoder;
 use Symfony\Component\Security\Core\Encoder\PasswordEncoderInterface;
+use Symfony\Component\Security\Core\Encoder\PlaintextPasswordEncoder;
 use Symfony\Component\Security\Core\Encoder\SelfSaltingEncoderInterface;
-use Symfony\Component\Security\Core\Exception\BadCredentialsException;
 
 /**
  * Class HighestAvailableEncoder
  * @package Crayner\Authenticate\Core
  */
-class HighestAvailableEncoder extends BasePasswordEncoder
+class HighestAvailableEncoder implements PasswordEncoderInterface, SelfSaltingEncoderInterface
 {
+    private $allEncoders = [
+        'argon2' => 16,
+        'bcrypt' => 8,
+        'sha256' => 4,
+        'md5' => 2,
+        'plain' => 1,
+    ];
     /**
-     * @var array
+     * @var array|null
      */
-    private $config = [];
-    
-    /**
-     * @var PasswordEncoderInterface|null
-     */
-    private $encoder;
+    private $config;
 
     /**
-     * @var string
+     * @var PasswordEncoderInterface[]
+     */
+    private $encoders = [];
+
+    /**
+     * setConfiguration
+     * @param array $config
+     */
+    public function setConfiguration(array $config)
+    {
+        $this->config = $config;
+        $this->definedEncoders();
+
+        $this->loadEncoders();
+        $this->rehashPasswordRequired = null;
+    }
+
+    /**
+     * encodePassword
+     * @param string $raw
+     * @param string $salt
+     * @return string
+     */
+    public function encodePassword($raw, $salt)
+    {
+        $encoder = $this->getEncoder();
+        return $encoder->encodePassword($raw, $salt);
+    }
+
+    /**
+     * getEncoder
+     * @return PasswordEncoderInterface
+     */
+    public function getEncoder(): PasswordEncoderInterface
+    {
+        return reset($this->encoders);
+    }
+
+    /**
+     * @var bool|null
+     */
+    private $rehashPasswordRequired;
+
+    /**
+     * isPasswordValid
+     * @param string $encoded
+     * @param string $raw
+     * @param string $salt
+     * @return bool
+     */
+    public function isPasswordValid($encoded, $raw, $salt): bool
+    {
+        $this->rehashPasswordRequired = false;
+        foreach($this->encoders as $encoder) {
+            if (get_class($this->getEncoder()) !== get_class($encoder) && $this->config['always_upgrade'])
+                $this->rehashPasswordRequired = true;
+            if ($encoder->isPasswordValid($encoded, $raw, $salt))
+                return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * loadEncoders
+     */
+    private function loadEncoders()
+    {
+        $encoders = [];
+        if (($this->available & 16) && $this->config['sodium'] && class_exists(SodiumPasswordEncoder::class) && SodiumPasswordEncoder::isSupported()) {
+            $encoders[] = new SodiumPasswordEncoder($this->config['time_cost'], $this->config['memory_cost']);
+        } elseif (($this->available & 16) && ! $this->config['sodium'] && NativePasswordEncoder::isSupported()) {
+            $encoders[] = new NativePasswordEncoder($this->config['time_cost'], $this->config['memory_cost'], $this->config['cost']);
+        }
+        if ($this->available & 8 && BCryptPasswordEncoder::isSupported())
+            $encoders[] = new BCryptPasswordEncoder($this->config['cost']);
+
+        if ($this->available & 4)
+            $encoders[] = new SHA256PasswordEncoder($this->config['encode_as_base64'], $this->config['iterations_sha256'], $this->config['password_salt_mask'], $this->config['store_salt_separately']);
+        if ($this->available & 2)
+            $encoders[] = new MD5PasswordEncoder($this->config['iterations_md5']);
+        if ($this->available & 1)
+            $encoders[] = new PlaintextPasswordEncoder($this->config['ignore_password_case']);
+        $this->encoders = $encoders;
+    }
+
+    /**
+     * @return PasswordEncoderInterface[]
+     */
+    public function getEncoders(): array
+    {
+        return $this->encoders;
+    }
+
+    /**
+     * @var int
      */
     private $available;
 
     /**
-     * @var string
+     * definedEncoders
      */
-    private $currentEncoder;
-
-    /**
-     * HighestAvailableEncoder constructor.
-     * @param array $options
-     */
-    public function setConfiguration(
-        array $options
-    )
+    private function definedEncoders()
     {
-        if (strpos($options['password_salt_mask'], '{password}') === false or strpos($options['password_salt_mask'], '{salt}') === false)
-            throw new \InvalidArgumentException(sprintf('The %s class requires that the "password_salt_mask" contains both "{password}" and "{salt}".  The current "password_salt_mask" is "%s" and can be changed in the config/packages/crayner_authentication.yaml file.', HighestAvailableEncoder::class, $options['password_salt_mask']));
+        $max = $this->config['maximum_available'];
+        $min = $this->allEncoders[$this->config['minimum_available']] <= $this->allEncoders[$this->config['maximum_available']] ? $this->config['minimum_available'] : $this->config['maximum_available'] ;
 
-        $this->config = $options;
+        $this->available = 0;
 
-        $this->available = null;
-
-        if (\PHP_VERSION_ID >= 70300 && \defined('PASSWORD_ARGON2ID') && $options['maximum_available'] === 'argon2id') {
-            $this->available = 'argon2id';
+        foreach($this->allEncoders as $encoder => $value)
+        {
+            if ($this->allEncoders[$encoder] <= $this->allEncoders[$max])
+                $this->available += $this->allEncoders[$encoder];
+            if ($this->allEncoders[$encoder] < $this->allEncoders[$min])
+                $this->available -= $this->allEncoders[$encoder];
         }
 
-        if (\PHP_VERSION_ID >= 70200 && \defined('PASSWORD_ARGON2I') && in_array($options['maximum_available'], ['argon2id', 'argon2i'])) {
-            $this->available = $this->available ?: 'argon2i';
-        }
-
-        if (\defined('PASSWORD_BCRYPT') && in_array($options['maximum_available'], ['argon2id', 'argon2i', 'bcrypt'])) {
-            $this->available = $this->available ?: 'bcrypt';
-        }
-
-        if (empty($this->available) && in_array($options['maximum_available'], ['argon2id', 'argon2i', 'bcrypt', 'sha256'])) {
-            $this->available = $this->available ?: 'sha256';
-        }
-
-        $this->available = $this->available ?: 'md5';
     }
 
     /**
-     * @return string
+     * @return int
      */
-    public function getAvailable(): string
+    public function getAvailable(): int
     {
-        return $this->available =  $this->available ?: 'md5';
+        return $this->available;
     }
 
     /**
-     * Encodes the raw password.
-     *
-     * @param string $raw  The password to encode
-     * @param string $salt The salt
-     *
-     * @return string The encoded password
-     *
-     * @throws BadCredentialsException   If the raw password is invalid, e.g. excessively long
-     * @throws \InvalidArgumentException If the salt is invalid
-     */
-    public function encodePassword($raw, $salt)
-    {
-        $this->encoder = $this->getMD5Encoder();
-
-        if (! empty($salt) && $this->config['maximum_available'] !== 'md5')
-            $this->encoder = $this->getSHA256Encoder();
-
-        if (\defined('PASSWORD_BCRYPT') && in_array($this->config['maximum_available'], ['argon2i', 'bcrypt']))
-            $this->encoder = $this->getBCryptEncoder();
-
-        if (\PHP_VERSION_ID >= 70200 && \defined('PASSWORD_ARGON2I') && $this->config['maximum_available'] === 'argon2i')
-            $this->encoder = $this->getArgon2iEncoder();
-
-        if (\PHP_VERSION_ID >= 70300 && \defined('PASSWORD_ARGON2ID') && $this->config['maximum_available'] === 'argon2id')
-            $this->encoder = $this->getArgon2idEncoder();
-
-        return $this->encoder->encodePassword($raw, $salt ?: null);
-    }
-
-    /**
-     * Checks a raw password against an encoded password.
-     *
-     * @param string $encoded An encoded password
-     * @param string $raw     A raw password
-     * @param string $salt    The salt
-     *
-     * @return bool true if the password is valid, false otherwise
-     *
-     * @throws \InvalidArgumentException If the salt is invalid
-     */
-    public function isPasswordValid($encoded, $raw, $salt)
-    {
-        $passwordInfo = password_get_info($encoded);
-        if ($passwordInfo['algo'] > 0 || in_array($this->config['minimum_available'], ['bcrypt', 'argon2i', 'argon2id'])) {
-
-            $this->currentEncoder = $passwordInfo['algoName'] !== 'unknown' ? $passwordInfo['algoName'] : $this->config['minimum_available'];
-            switch ($this->currentEncoder) {
-                case 'argon2id':
-                    $this->encoder = $this->getArgon2idEncoder();
-                    break;
-                case 'argon2i':
-                    $this->encoder = $this->getArgon2iEncoder();
-                    break;
-                case 'bcrypt':
-                    $this->encoder = $this->getBCryptEncoder();
-                    break;
-                default:
-                    throw new \InvalidArgumentException(sprintf('Unable to handle %s encryption.', $this->currentEncoder));
-            }
-
-            return $this->encoder->isPasswordValid($encoded, $raw, $salt);
-        }
-
-        $this->currentEncoder = 'sha256';
-        if (!empty($salt) && $this->config['maximum_available'] !== 'md5') {
-            $this->encoder = $this->getSHA256Encoder();
-            $valid = $this->encoder->isPasswordValid($encoded, $raw, $salt);
-            if ($valid)
-                return true;
-        }
-
-        if ($this->config['minimum_available'] === 'sha256')
-            return false;
-
-        $this->currentEncoder = 'md5';
-        $this->encoder = $this->getMD5Encoder();
-
-        return $this->encoder->isPasswordValid($encoded, $raw, $salt ?: null);
-    }
-
-    /**
-     * @return string
-     */
-    public function getCurrentEncoder(): string
-    {
-        return $this->currentEncoder;
-    }
-
-    /**
-     * getMD5Encoder
-     * @return MD5PasswordEncoder
-     */
-    private function getMD5Encoder(): MD5PasswordEncoder
-    {
-        return new MD5PasswordEncoder($this->config['iterations_md5']);
-    }
-
-    /**
-     * getSHA256Encoder
-     * @return SHA256PasswordEncoder
-     */
-    private function getSHA256Encoder(): SHA256PasswordEncoder
-    {
-        if ($this->getAvailable() !== 'sha256')
-            return $this->getMD5Encoder();
-        return new SHA256PasswordEncoder($this->config['encode_as_base64'], $this->config['iterations_sha256'], $this->config['password_salt_mask'], $this->config['store_salt_separately']);
-    }
-
-    /**
-     * getBCryptEncoder
-     * @return BCryptPasswordEncoder
-     */
-    private function getBCryptEncoder(): BCryptPasswordEncoder
-    {
-        if ($this->getAvailable() !== 'bcrypt')
-            return $this->getSHA256Encoder();
-        return new BCryptPasswordEncoder($this->config['cost']);
-    }
-
-    /**
-     * getArgon2iEncoder
-     * @return Argon2iPasswordEncoder
-     */
-    private function getArgon2iEncoder(): SelfSaltingEncoderInterface
-    {
-        if ($this->getAvailable() !== 'argon2i')
-            return $this->getBCryptEncoder();
-        return SodiumPasswordEncoder::createEncoder($this->config['memory_cost'], $this->config['time_cost'], $this->config['threads'], $this->config['sodium'], 'argon2i');
-    }
-
-    /**
-     * getArgon2idEncoder
-     * @return Argon2idPasswordEncoder
-     */
-    private function getArgon2idEncoder(): SelfSaltingEncoderInterface
-    {
-        if ($this->getAvailable() !== 'argon2id')
-            return $this->getArgon2iEncoder();
-        return SodiumPasswordEncoder::createEncoder($this->config['memory_cost'], $this->config['time_cost'], $this->config['threads'], $this->config['sodium'], 'argon2id');
-    }
-
-    /**
+     * isRehashPasswordRequired
+     * @param $encoded
      * @return bool
      */
-    private function requiresPasswordUpgrade(): bool
+    public function isRehashPasswordRequired($encoded): bool
     {
-        return $this->currentEncoder !== $this->available && $this->config['always_upgrade'];
-    }
+        if (is_null($this->rehashPasswordRequired))
+            throw new \InvalidArgumentException('The method "isPasswordValid" must be called before checking "isRehashPasswordRequired"');
+        if ($this->rehashPasswordRequired)
+            return true;
 
-    /**
-     * @param string $encoded
-     * @param string $raw
-     * @param string|null $salt
-     * @param bool $forceUpgrade
-     * @return string
-     */
-    public function upgradePassword(string $encoded, string $raw, ?string $salt, bool $forceUpgrade = false): string
-    {
-        if ($this->requiresPasswordUpgrade() || $forceUpgrade)
-        {
-            $encoded = $this->encodePassword($raw, $salt ?: null);
-        }
-        return $encoded;
-    }
+        if (method_exists($this->getEncoder(), 'isRehashPasswordRequired'))
+            return $this->getEncoder()->isRehashPasswordRequired($encoded);
 
-    public function getEncoder(): ?PasswordEncoderInterface
-    {
-        return $this->encoder;
+        $encoder = password_get_info($encoded);
+        if ($encoder['algo'] > 0)
+            return password_needs_rehash($encoded, $encoder['algo'], $this->config);
+
+        return false;
     }
 }
