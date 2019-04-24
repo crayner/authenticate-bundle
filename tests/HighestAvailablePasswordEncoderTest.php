@@ -154,9 +154,9 @@ class HighestAvailablePasswordEncoderTest extends WebTestCase
 
             $encoded = password_hash(HighestAvailablePasswordEncoderTest::PASSWORD, PASSWORD_BCRYPT, $config);
 
-            $this->assertTrue($encoder->isPasswordValid($encoded, HighestAvailablePasswordEncoderTest::PASSWORD, null));
+            $this->assertTrue($encoder->isPasswordValid($encoded, HighestAvailablePasswordEncoderTest::PASSWORD, null), 'The password is not valid.');
             $this->assertEquals(NativePasswordEncoder::class, get_class($encoder->getEncoder()));
-            $this->assertTrue($encoder->isRehashPasswordRequired($encoded));
+            $this->assertTrue($encoder->isRehashPasswordRequired($encoded),'A rehash is not required.');
 
 
         } else
