@@ -215,8 +215,6 @@ class HighestAvailablePasswordEncoderTest extends WebTestCase
         $encoded = HighestAvailablePasswordEncoderTest::PASSWORD;
 
         $prefix = '$argon2id$v=19$m=63,t=2,p=1$';
-        if (\PHP_VERSION_ID < 70300)
-            $prefix = '$argon2i$v=19$m=63,t=2,p=1$';
         if (\PHP_VERSION_ID < 70200)
             $prefix = '$2y$10$';
 
