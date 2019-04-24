@@ -14,7 +14,7 @@ namespace Crayner\Authenticate\DependencyInjection;
 use Crayner\Authenticate\Core\Argon2idPasswordEncoder;
 use Crayner\Authenticate\Core\Argon2iPasswordEncoder;
 use Crayner\Authenticate\Core\AuthenticateManager;
-use Crayner\Authenticate\Core\HighestAvailableEncoder;
+use Crayner\Authenticate\Core\HighestAvailablePasswordEncoder;
 use Crayner\Authenticate\Core\LoginFormAuthenticator;
 use Crayner\Authenticate\Core\Messages;
 use Crayner\Authenticate\Core\SecurityUserProvider;
@@ -47,17 +47,17 @@ class CraynerAuthenticateExtension extends Extension
         );
         $loader->load('services.yaml');
 
-        if (!empty($config['highest_available_encoder']) && $container->has(HighestAvailableEncoder::class))
+        if (!empty($config['highest_available_encoder']) && $container->has(HighestAvailablePasswordEncoder::class))
             $container
-                ->getDefinition(HighestAvailableEncoder::class)
+                ->getDefinition(HighestAvailablePasswordEncoder::class)
                 ->addMethodCall('setConfiguration', [$config['highest_available_encoder']])
             ;
 
-        if ($container->has(HighestAvailableEncoder::class) && $container->has(LoginFormAuthenticator::class))
+        if ($container->has(HighestAvailablePasswordEncoder::class) && $container->has(LoginFormAuthenticator::class))
         {
             $container
                 ->getDefinition(LoginFormAuthenticator::class)
-                ->addMethodCall('setPasswordEncoder', [$container->getDefinition(HighestAvailableEncoder::class)])
+                ->addMethodCall('setPasswordEncoder', [$container->getDefinition(HighestAvailablePasswordEncoder::class)])
                 ->addMethodCall('setFailureConfig', [$config['manage_failures']])
                 ->addMethodCall('setUserClass', [$config['user_class']])
                 ->addMethodCall('setRotatePassword', [$config['rotate_password']])

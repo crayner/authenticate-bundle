@@ -104,9 +104,9 @@ class HighestAvailablePasswordEncoder implements PasswordEncoderInterface, SelfS
     {
         $encoders = [];
         if (($this->available & 16) && $this->config['sodium'] && class_exists(SodiumPasswordEncoder::class) && SodiumPasswordEncoder::isSupported()) {
-            $encoders[] = new SodiumPasswordEncoder($this->config['time_cost'], $this->config['memory_cost']);
-        } elseif (($this->available & 16) && ! $this->config['sodium'] && NativePasswordEncoder::isSupported()) {
-            $encoders[] = new NativePasswordEncoder($this->config['time_cost'], $this->config['memory_cost'], $this->config['cost']);
+            $encoders[] = new SodiumPasswordEncoder($this->config['ops_limit'], $this->config['mem_limit']);
+        } elseif (($this->available & 16) && NativePasswordEncoder::isSupported()) {
+            $encoders[] = new NativePasswordEncoder($this->config['ops_limit'], $this->config['mem_limit'], $this->config['cost']);
         }
         if ($this->available & 8 && BCryptPasswordEncoder::isSupported())
             $encoders[] = new BCryptPasswordEncoder($this->config['cost']);

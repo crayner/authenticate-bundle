@@ -1,10 +1,10 @@
 # Authenticate Bundle Project
 ### Symfony 4+ Authenticate Bundle Project
 
-___Version 1.1.3___
+___Version 1.1.4___
 
 ## Features
-* [Highest Available Encoder](Documents/HighestAvailabelEncoder.md)
+* [Highest Available Encoder](Documents/HighestAvailablePasswordEncoder.md)
 * [Manage Lock on Login Failures](Documents/ManageFailures.md)
 * [Password Validation](Documents/PasswordValidation.md)
 * [Rotate Passwords](Documents/RotatePasswords.md)

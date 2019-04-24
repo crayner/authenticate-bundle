@@ -142,9 +142,8 @@ class HighestAvailablePasswordEncoderTest extends WebTestCase
                 'maximum_available' => 'argon2',
                 'minimum_available' => 'argon2',
                 'password_salt_mask' => '{password}{{salt}}',
-                'memory_cost' => 16384,
-                'time_cost' => 2,
-                'threads' => 4,
+                'mem_limit' => 16384,
+                'ops_limit' => 2,
                 'sodium' => false,
                 'cost' => 10,
             ];
@@ -174,9 +173,8 @@ class HighestAvailablePasswordEncoderTest extends WebTestCase
                 'maximum_available' => 'argon2',
                 'minimum_available' => 'argon2',
                 'cost' => 10,
-                'memory_cost' => 65535,
-                'time_cost' => 2,
-                'threads' => 1,
+                'mem_limit' => 65535,
+                'ops_limit' => 2,
                 'sodium' => true,
                 'always_upgrade' => false,
             ];
@@ -206,9 +204,8 @@ class HighestAvailablePasswordEncoderTest extends WebTestCase
             'iterations_md5' => 1,
             'encode_as_base64' => false,
             'cost' => 10,
-            'memory_cost' => 65535,
-            'time_cost' => 2,
-            'threads' => 4,
+            'mem_limit' => 65535,
+            'ops_limit' => 2,
             'sodium' => true,
             'always_upgrade' => false,
             'store_salt_separately' => false,
@@ -259,15 +256,7 @@ class HighestAvailablePasswordEncoderTest extends WebTestCase
         $config = [
             'maximum_available' => 'bcrypt',
             'minimum_available' => 'bcrypt',
-            'password_salt_mask' => '{password}{{salt}}',
-            'iterations_sha256' => 1,
-            'iterations_md5' => 1,
-            'encode_as_base64' => false,
             'cost' => 10,
-            'memory_cost' => 16384,
-            'time_cost' => 2,
-            'threads' => 4,
-            'always_upgrade' => false,
         ];
 
         $encoder = new HighestAvailablePasswordEncoder();
@@ -277,5 +266,6 @@ class HighestAvailablePasswordEncoderTest extends WebTestCase
         $this->assertFalse($encoder->isPasswordValid($encoded, HighestAvailablePasswordEncoderTest::PASSWORD, null));
         $this->assertStringStartsWith('$2y$10$', $encoder->encodePassword(HighestAvailablePasswordEncoderTest::PASSWORD, null));
         $this->assertEquals(BCryptPasswordEncoder::class, get_class($encoder->getEncoder()));
+        $this->assertEquals(1, count($encoder->getEncoders()));
     }
 }

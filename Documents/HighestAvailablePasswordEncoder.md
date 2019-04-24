@@ -7,37 +7,38 @@ The Highest Available Encoder is defined with the following defaults when flex c
 * BCrypt
 * SHA256
 * MD5
+* Plain
 
 ___NB___ Symfony is moving away from native support for Argon2* support with Symfony 4.3+.  This bundle will use the LibSodium SodiumPasswordEncoder of Symfony 4.3+.  The SodiumPasswordEncoder in Symfony ignores the Argon2* options.  This bundle will default to the libsodium 
 
 ```yaml
 crayner_authenticate:
     highest_available_encoder:
-        # Argon2i && Argon2id Options
-        memory_cost: 1024
-        time_cost: 2
-        threads: 4
+        # Sodium / Native Options
+        mem_limit: 67108864
+        ops_limit: 2
         sodium: true
         # BCrypt Options
         cost: 12
-        # SHA256/MD5 Options
+        # SHA256 / MD5 Options
         iterations_sha256: 1000
         iterations_md5: 1
         encode_as_base64: false
         password_salt_mask: '{password}{{salt}}'
         store_salt_separately: false
+        # Plaintext Options
+        ignore_password_case: false
         # Global Options
-        maximum_available: 'argon2i'
+        maximum_available: 'argon2'
         minimum_available: 'md5'
         always_upgrade: true
 ```
 #### Argon2i and Argon2id
-* memory cost
-* time_cost
-* threads
-* Use Lib Sodium if true, or default to PHP Argon2* native support when false. 
+* mem_limit
+* ops_limit
+* sodium Use Lib Sodium if true, or default to PHP Argon2* native support when false. 
 
-Details for Argon2i and Argon2id can be found at <a href="https://www.php.net/manual/en/password.constants.php" target="_blank">https://www.php.net/manual/en/password.constants.php</a>
+Details for Argon2 can be found at <a href="https://www.php.net/manual/en/password.constants.php" target="_blank">https://www.php.net/manual/en/password.constants.php</a>
 
 #### BCrypt
 * cost
@@ -58,6 +59,9 @@ If the password = 'your_password' and the salt = 'a_secret_salt' then the two ex
 
 #### MD5
 * iterations_md5 is mapped to iterations in the MD5Encoder
+
+#### Plain Text
+* ignore_password_case
 
 #### Global Options
 * maximum_available. Limit the highest available encoder

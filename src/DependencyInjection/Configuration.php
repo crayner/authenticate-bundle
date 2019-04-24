@@ -24,11 +24,11 @@ class Configuration implements ConfigurationInterface
     {
         $treeBuilder = new TreeBuilder('crayner_authenticate');
         $encoders = [
-            'argon2id',
-            'argon2i',
+            'argon2',
             'bcrypt',
             'sha256',
             'md5',
+            'plain',
         ];
 
         if (method_exists($treeBuilder, 'getRootNode')) {
@@ -42,17 +42,17 @@ class Configuration implements ConfigurationInterface
             ->children()
                 ->arrayNode('highest_available_encoder')->addDefaultsIfNotSet()
                     ->children()
-                        ->integerNode('memory_cost')->defaultValue(16384)->end()
-                        ->integerNode('time_cost')->defaultValue(2)->end()
-                        ->integerNode('threads')->defaultValue(4)->end()
+                        ->integerNode('mem_limit')->defaultValue(64 * 1024 * 1024)->end()
+                        ->integerNode('ops_limit')->defaultValue(6)->end()
                         ->booleanNode('sodium')->defaultTrue()->end()
-                        ->integerNode('cost')->defaultValue(\PASSWORD_BCRYPT_DEFAULT_COST)->min(4)->max(31)->end()
+                        ->integerNode('cost')->defaultValue(13)->min(4)->max(31)->end()
                         ->integerNode('iterations_sha256')->defaultValue(1000)->min(1)->max(32000)->end()
                         ->integerNode('iterations_md5')->defaultValue(1)->min(1)->max(32000)->end()
                         ->booleanNode('encode_as_base64')->defaultFalse()->end()
+                        ->booleanNode('ignore_password_case')->defaultFalse()->end()
                         ->scalarNode('password_salt_mask')->defaultValue('{password}{{salt}}')->end()
-                        ->enumNode('maximum_available')->values($encoders)->defaultValue('argon2id')->end()
-                        ->enumNode('minimum_available')->values($encoders)->defaultValue('md5')->end()
+                        ->enumNode('maximum_available')->values($encoders)->defaultValue('argon2')->end()
+                        ->enumNode('minimum_available')->values($encoders)->defaultValue('plain')->end()
                         ->booleanNode('always_upgrade')->defaultTrue()->end()
                         ->booleanNode('store_salt_separately')->defaultFalse()->end()
                     ->end()

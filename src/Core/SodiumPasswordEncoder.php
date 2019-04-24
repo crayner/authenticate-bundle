@@ -37,7 +37,7 @@ class SodiumPasswordEncoder implements PasswordEncoderInterface, SelfSaltingEnco
         }
 
         $this->opsLimit = $opsLimit ?? max(6, \defined('SODIUM_CRYPTO_PWHASH_OPSLIMIT_MODERATE') ? \SODIUM_CRYPTO_PWHASH_OPSLIMIT_MODERATE : 6);
-        $this->memLimit = $memLimit ?? max(64 * 1024 * 1024, \defined('SODIUM_CRYPTO_PWHASH_MEMLIMIT_INTERACTIVE') ? \SODIUM_CRYPTO_PWHASH_MEMLIMIT_INTERACTIVE : 64 * 1024 * 2014);
+        $this->memLimit = $memLimit ?? max(64 * 1024 * 1024, \defined('SODIUM_CRYPTO_PWHASH_MEMLIMIT_INTERACTIVE') ? \SODIUM_CRYPTO_PWHASH_MEMLIMIT_INTERACTIVE : 64 * 1024 * 1024);
 
         if (2 > $this->opsLimit) {
             throw new \InvalidArgumentException('$opsLimit must be 2 or greater.');
