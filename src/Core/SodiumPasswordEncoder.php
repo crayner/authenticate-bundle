@@ -11,7 +11,7 @@
  */
 namespace Crayner\Authenticate\Core;
 
-use Symfony\Component\Security\Core\Encoder\BasePasswordEncoder;
+use Symfony\Component\Security\Core\Encoder\PasswordEncoderInterface;
 use Symfony\Component\Security\Core\Encoder\SelfSaltingEncoderInterface;
 use Symfony\Component\Security\Core\Exception\BadCredentialsException;
 use Symfony\Component\Security\Core\Exception\LogicException;
@@ -23,94 +23,91 @@ use Symfony\Component\Security\Core\Exception\LogicException;
  * @author Zan Baldwin <hello@zanbaldwin.com>
  * @author Dominik Müller <dominik.mueller@jkweb.ch>
  */
-class SodiumPasswordEncoder extends BasePasswordEncoder implements SelfSaltingEncoderInterface
+class SodiumPasswordEncoder implements PasswordEncoderInterface, SelfSaltingEncoderInterface
 {
-    /**
-     * createEncoder
-     * @param int $memoryCost
-     * @param int $timeCost
-     * @param int $threads
-     * @param bool $sodium
-     * @param string|null $available
-     * @return SelfSaltingEncoderInterface
-     */
-    public static function createEncoder(int $memoryCost = 65535, int $timeCost = 2, int $threads = 4, bool $sodium = true, ?string $available = 'argon2id'): SelfSaltingEncoderInterface
+    private const MAX_PASSWORD_LENGTH = 4096;
+
+    private $opsLimit;
+    private $memLimit;
+
+    public function __construct(int $opsLimit = null, int $memLimit = null)
     {
-        if (\class_exists('\Symfony\Component\Security\Core\SodiumPasswordEncoder') && $sodium)
-            return new \Symfony\Component\Security\Core\SodiumPasswordEncoder();
-        if (self::isSupported() && $sodium)
-            return new self();
-        if (\defined('PASSWORD_ARGON2ID') && \PHP_VERSION_ID >= 70300 && $available === 'argon2id')
-            return new Argon2idPasswordEncoder($memoryCost, $timeCost, $threads);
-        if (\defined('PASSWORD_ARGON2I') && \PHP_VERSION_ID >= 70200)
-            return new Argon2iPasswordEncoder($memoryCost, $timeCost, $threads);
-        throw new \LogicException('Libsodium is not available. You should turn on the Sodium flag in the package, install the sodium extension, upgrade to PHP 7.2+ or use a different encoder.');
+        if (!self::isSupported()) {
+            throw new LogicException('Libsodium is not available. You should either install the sodium extension, upgrade to PHP 7.2+ or use a different encoder.');
+        }
+
+        $this->opsLimit = $opsLimit ?? max(6, \defined('SODIUM_CRYPTO_PWHASH_OPSLIMIT_MODERATE') ? \SODIUM_CRYPTO_PWHASH_OPSLIMIT_MODERATE : 6);
+        $this->memLimit = $memLimit ?? max(64 * 1024 * 1024, \defined('SODIUM_CRYPTO_PWHASH_MEMLIMIT_INTERACTIVE') ? \SODIUM_CRYPTO_PWHASH_MEMLIMIT_INTERACTIVE : 64 * 1024 * 2014);
+
+        if (2 > $this->opsLimit) {
+            throw new \InvalidArgumentException('$opsLimit must be 2 or greater.');
+        }
+
+        if (10 * 1024 > $this->memLimit) {
+            throw new \InvalidArgumentException('$memLimit must be 10k or greater.');
+        }
     }
 
-    /**
-     * isSupported
-     * @return bool
-     */
     public static function isSupported(): bool
     {
-        if (\class_exists('\Symfony\Component\Security\Core\SodiumPasswordEncoder'))
-        {
-            \trigger_error('The system should not select this class for Symfony 4.3+',E_USER_DEPRECATED);
-            return false;
-        }
         if (\class_exists('ParagonIE_Sodium_Compat') && \method_exists('ParagonIE_Sodium_Compat', 'crypto_pwhash_is_available')) {
             return \ParagonIE_Sodium_Compat::crypto_pwhash_is_available();
         }
+
         return \function_exists('sodium_crypto_pwhash_str') || \extension_loaded('libsodium');
     }
 
     /**
-     * encodePassword
-     * @param string $raw
-     * @param string $salt
-     * @return string
-     * @throws \SodiumException
+     * {@inheritdoc}
      */
     public function encodePassword($raw, $salt)
     {
-        if ($this->isPasswordTooLong($raw)) {
+        if (\strlen($raw) > self::MAX_PASSWORD_LENGTH) {
             throw new BadCredentialsException('Invalid password.');
         }
+
         if (\function_exists('sodium_crypto_pwhash_str')) {
-            return \sodium_crypto_pwhash_str(
-                $raw,
-                \SODIUM_CRYPTO_PWHASH_OPSLIMIT_INTERACTIVE,
-                \SODIUM_CRYPTO_PWHASH_MEMLIMIT_INTERACTIVE
-            );
+            return \sodium_crypto_pwhash_str($raw, $this->opsLimit, $this->memLimit);
         }
+
         if (\extension_loaded('libsodium')) {
-            return \Sodium\crypto_pwhash_str(
-                $raw,
-                \Sodium\CRYPTO_PWHASH_OPSLIMIT_INTERACTIVE,
-                \Sodium\CRYPTO_PWHASH_MEMLIMIT_INTERACTIVE
-            );
+            return \Sodium\crypto_pwhash_str($raw, $this->opsLimit, $this->memLimit);
         }
+
         throw new LogicException('Libsodium is not available. You should either install the sodium extension, upgrade to PHP 7.2+ or use a different encoder.');
     }
 
     /**
-     * isPasswordValid
-     * @param string $encoded
-     * @param string $raw
-     * @param string $salt
-     * @return bool
+     * {@inheritdoc}
      */
     public function isPasswordValid($encoded, $raw, $salt)
     {
-        if ($this->isPasswordTooLong($raw)) {
+        if (\strlen($raw) > self::MAX_PASSWORD_LENGTH) {
             return false;
         }
+
         if (\function_exists('sodium_crypto_pwhash_str_verify')) {
             return \sodium_crypto_pwhash_str_verify($encoded, $raw);
         }
+
         if (\extension_loaded('libsodium')) {
             return \Sodium\crypto_pwhash_str_verify($encoded, $raw);
         }
+
         throw new LogicException('Libsodium is not available. You should either install the sodium extension, upgrade to PHP 7.2+ or use a different encoder.');
+    }
+
+    /**
+     * isRehashPasswordRequired
+     * @param $encoded
+     * @return bool
+     */
+    public function isRehashPasswordRequired($encoded): bool
+    {
+        $encoder = password_get_info($encoded);
+        if ($encoder['algo'] === 2)
+            return password_needs_rehash($encoded, $encoder['algo'], ['memory_cost' => $this->memLimit, 'time_cost' => $this->opsLimit, 'threads' => 2]);
+
+        return true;
     }
 }
